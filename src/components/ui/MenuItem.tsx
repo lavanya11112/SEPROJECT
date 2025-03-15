@@ -26,6 +26,9 @@ interface MenuItemProps {
 export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps) {
   const [hovered, setHovered] = useState(false);
   
+  // Converting price to rupees for display (if not already converted)
+  const displayPrice = item.price > 100 ? item.price : item.price * 82;
+  
   return (
     <MotionDiv
       animation="fade-in"
@@ -75,7 +78,7 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
               {item.name}
             </h3>
             <div className="font-medium text-base ml-2 whitespace-nowrap">
-              ${item.price.toFixed(2)}
+              ₹{displayPrice.toFixed(0)}
             </div>
           </div>
           
@@ -86,9 +89,9 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
           <div className="mt-auto">
             <button 
               className={cn(
-                "button-hover w-full py-2 px-4 rounded-md border border-primary/20 bg-secondary",
+                "button-hover w-full py-2 px-4 rounded-md border border-amber-400 bg-amber-50",
                 "font-medium text-sm transition-all duration-300",
-                "hover:bg-primary hover:text-primary-foreground"
+                "hover:bg-amber-600 hover:text-white"
               )}
             >
               Add to Order
