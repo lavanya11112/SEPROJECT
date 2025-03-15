@@ -78,7 +78,7 @@ export default function Index() {
                   <FoodCategory 
                     key={category.id}
                     name={category.name}
-                    image={category.image === "/lovable-uploads/f38bb9f8-a76d-4ed2-9fbc-41b2527a0913.png" ? category.image : "/placeholder.svg"}
+                    image={category.image}
                     onClick={() => navigate("/menu")}
                   />
                 ))}
