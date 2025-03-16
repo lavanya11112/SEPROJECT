@@ -10,8 +10,8 @@ export const foodCategories: FoodCategory[] = [
   { id: "parotta", name: "Parotta", image: "/lovable-uploads/23fefc2c-2075-4c15-a5e1-3b32a3e81235.png" },
   { id: "juice", name: "Juice", image: "/lovable-uploads/07c4633b-7628-4abd-b159-6941ebd3b426.png" },
   { id: "khichdi", name: "Khichdi", image: "/lovable-uploads/940b50b2-b24a-40ba-8b9b-181328c6e0d7.png" },
-  { id: "shakes", name: "Shakes", image: "/public/food-categories/shakes.jpg" },
-  { id: "sweets", name: "Sweets", image: "/public/food-categories/sweets.jpg" },
-  { id: "salads", name: "Salads", image: "/public/food-categories/salads.jpg" },
-  { id: "ice-cream", name: "Ice Cream", image: "/public/food-categories/ice-cream.jpg" },
+  { id: "shakes", name: "Shakes", image: "/lovable-uploads/0f2137eb-422e-4daa-8213-8612b6505400.png" },
+  { id: "sweets", name: "Sweets", image: "/lovable-uploads/9e2eeb87-a06a-4e7e-b2c2-300ad5c1e83b.png" },
+  { id: "salads", name: "Salads", image: "/lovable-uploads/adde90a1-6bd0-436b-9c2f-d1ff468602df.png" },
+  { id: "ice-cream", name: "Ice Cream", image: "/lovable-uploads/2380be38-945d-4e2e-99d1-5098b1704664.png" },
 ];
