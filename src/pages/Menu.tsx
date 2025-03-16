@@ -6,36 +6,75 @@ import { Container } from "@/components/ui/Container";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MotionDiv } from "@/components/ui/MotionDiv";
-import { categories, getMenuItemsByCategory, MenuItem } from "@/lib/menu-data";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useQuery } from "@tanstack/react-query";
+import { fetchCategories, fetchMenuItems, searchMenuItems } from "@/lib/api";
+import { MenuItem, MenuCategory } from "@/types/database";
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   
-  useEffect(() => {
-    const items = getMenuItemsByCategory(activeCategory);
-    
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      setFilteredItems(
-        items.filter(
-          (item) =>
-            item.name.toLowerCase().includes(query) ||
-            item.description.toLowerCase().includes(query)
-        )
-      );
-    } else {
-      setFilteredItems(items);
-    }
-  }, [activeCategory, searchQuery]);
+  // Fetch categories
+  const { 
+    data: categories = [],
+    isLoading: categoriesLoading
+  } = useQuery({
+    queryKey: ['categories'],
+    queryFn: fetchCategories,
+  });
   
+  // Create a standardized categories array including "All"
+  const allCategories: { id: string; name: string }[] = [
+    { id: "all", name: "All" },
+    ...categories.map(cat => ({ id: cat.id, name: cat.name }))
+  ];
+  
+  // Fetch menu items based on active category
+  const { 
+    data: menuItems = [],
+    isLoading: menuItemsLoading,
+    refetch: refetchMenuItems
+  } = useQuery({
+    queryKey: ['menuItems', activeCategory],
+    queryFn: () => fetchMenuItems(activeCategory === 'all' ? undefined : activeCategory),
+    enabled: !searchQuery, // Don't run this query when searching
+  });
+  
+  // Search query for menu items
+  const { 
+    data: searchResults = [],
+    isLoading: searchLoading,
+    refetch: refetchSearch
+  } = useQuery({
+    queryKey: ['searchMenuItems', searchQuery],
+    queryFn: () => searchMenuItems(searchQuery),
+    enabled: !!searchQuery, // Only run when there's a search query
+  });
+  
+  // Update filtered items when data changes
+  useEffect(() => {
+    if (searchQuery) {
+      setFilteredItems(searchResults);
+    } else {
+      setFilteredItems(menuItems);
+    }
+  }, [searchQuery, searchResults, menuItems]);
+  
+  // Handle search input changes
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+  
+  // Handle category changes
   const handleCategoryChange = (categoryId: string) => {
     setActiveCategory(categoryId);
+    setSearchQuery(''); // Clear search when changing category
   };
+  
+  const isLoading = categoriesLoading || menuItemsLoading || searchLoading;
   
   return (
     <>
@@ -59,19 +98,23 @@ export default function Menu() {
                 placeholder="Search menu..."
                 className="pl-10 rounded-full"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
               />
             </div>
           </div>
           
           <CategoryTabs
-            categories={categories}
+            categories={allCategories}
             activeCategory={activeCategory}
             onCategoryChange={handleCategoryChange}
             className="mb-8"
           />
           
-          {filteredItems.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-16">
+              <h3 className="text-lg mb-2">Loading menu items...</h3>
+            </div>
+          ) : filteredItems.length === 0 ? (
             <div className="text-center py-16">
               <h3 className="text-lg mb-2">No items found</h3>
               <p className="text-muted-foreground">

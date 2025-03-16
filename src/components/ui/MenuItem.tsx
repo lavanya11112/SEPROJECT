@@ -3,18 +3,10 @@ import { useState } from "react";
 import { AnimatedImage } from "./AnimatedImage";
 import { MotionDiv } from "./MotionDiv";
 import { cn } from "@/lib/utils";
-
-export interface MenuItemType {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  category: string;
-  vegetarian?: boolean;
-  spicy?: boolean;
-  popular?: boolean;
-}
+import { useCart } from "@/contexts/CartContext";
+import { MenuItem as MenuItemType } from "@/types/database";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 interface MenuItemProps {
   item: MenuItemType;
@@ -25,9 +17,30 @@ interface MenuItemProps {
 
 export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps) {
   const [hovered, setHovered] = useState(false);
+  const { addToCart } = useCart();
+  const { user } = useAuth();
   
   // Converting price to rupees for display (if not already converted)
   const displayPrice = item.price > 100 ? item.price : item.price * 82;
+  
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "You need to be signed in to add items to cart",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      await addToCart(item, 1);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
+  };
   
   return (
     <MotionDiv
@@ -46,7 +59,7 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
       >
         <div className="relative overflow-hidden aspect-[4/3]">
           <AnimatedImage
-            src={item.image}
+            src={item.image || ""}
             alt={item.name}
             className="transition-transform duration-700 ease-out group-hover:scale-105"
             aspectRatio="auto"
@@ -93,6 +106,7 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
                 "font-medium text-sm transition-all duration-300",
                 "hover:bg-amber-600 hover:text-white"
               )}
+              onClick={handleAddToCart}
             >
               Add to Order
             </button>

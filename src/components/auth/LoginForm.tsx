@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface LoginFormProps {
-  onSuccess?: () => void;
-}
-
-export function LoginForm({ onSuccess }: LoginFormProps) {
+export function LoginForm() {
+  const { signIn } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -31,20 +29,13 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await signIn(email, password);
+    } catch (error) {
+      console.error("Login error:", error);
+    } finally {
       setIsLoading(false);
-      
-      // Mock successful login
-      toast({
-        title: "Success",
-        description: "You've been logged in successfully",
-      });
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-    }, 1500);
+    }
   };
   
   return (
@@ -90,26 +81,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Signing in..." : "Sign In"}
       </Button>
-      
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            or continue with
-          </span>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <Button variant="outline" type="button" className="w-full">
-          Google
-        </Button>
-        <Button variant="outline" type="button" className="w-full">
-          Facebook
-        </Button>
-      </div>
     </form>
   );
 }

@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface SignupFormProps {
-  onSuccess?: () => void;
-}
-
-export function SignupForm({ onSuccess }: SignupFormProps) {
+export function SignupForm() {
+  const { signUp } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [name, setName] = useState("");
@@ -52,20 +50,13 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await signUp(email, password, name);
+    } catch (error) {
+      console.error("Signup error:", error);
+    } finally {
       setIsLoading(false);
-      
-      // Mock successful signup
-      toast({
-        title: "Account created",
-        description: "Your account has been created successfully",
-      });
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-    }, 1500);
+    }
   };
   
   return (
@@ -134,26 +125,6 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Creating Account..." : "Create Account"}
       </Button>
-      
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            or continue with
-          </span>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <Button variant="outline" type="button" className="w-full">
-          Google
-        </Button>
-        <Button variant="outline" type="button" className="w-full">
-          Facebook
-        </Button>
-      </div>
     </form>
   );
 }
