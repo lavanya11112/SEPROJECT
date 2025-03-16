@@ -1,10 +1,18 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, ShoppingBag } from "lucide-react";
+import { Menu, X, User, ShoppingBag, LogOut } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { AuthModal } from "@/components/auth/AuthModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavItem {
   label: string;
@@ -19,8 +27,10 @@ const navItems: NavItem[] = [
 ];
 
 export function Header() {
+  const { user, signOut } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const location = useLocation();
   
   // Handle scroll events
@@ -48,6 +58,9 @@ export function Header() {
       document.body.style.overflow = "";
     }
   };
+
+  const handleOpenAuthModal = () => setIsAuthModalOpen(true);
+  const handleCloseAuthModal = () => setIsAuthModalOpen(false);
   
   return (
     <header
@@ -73,7 +86,7 @@ export function Header() {
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  "text-sm font-medium transition-colors hover-underline",
+                  "text-sm font-medium transition-colors hover:text-primary",
                   location.pathname === item.href
                     ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -86,13 +99,38 @@ export function Header() {
           
           {/* Auth and Cart Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="rounded-full">
-              <User className="h-5 w-5 mr-2" />
-              Sign In
-            </Button>
-            <Button size="sm" className="rounded-full">
-              <ShoppingBag className="h-5 w-5 mr-2" />
-              Order
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="rounded-full">
+                    <User className="h-5 w-5 mr-2" />
+                    {user.user_metadata?.full_name || 'Account'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="w-full cursor-pointer">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/orders" className="w-full cursor-pointer">Orders</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={signOut} className="text-red-500 cursor-pointer">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="ghost" size="sm" className="rounded-full" onClick={handleOpenAuthModal}>
+                <User className="h-5 w-5 mr-2" />
+                Sign In
+              </Button>
+            )}
+            <Button size="sm" className="rounded-full" asChild>
+              <Link to="/cart">
+                <ShoppingBag className="h-5 w-5 mr-2" />
+                Order
+              </Link>
             </Button>
           </div>
           
@@ -138,17 +176,49 @@ export function Header() {
           </nav>
           
           <div className="border-t border-border mt-6 pt-6 space-y-4">
-            <Button variant="outline" className="w-full justify-start" size="lg">
-              <User className="h-5 w-5 mr-3" />
-              Sign In
-            </Button>
-            <Button className="w-full justify-start" size="lg">
-              <ShoppingBag className="h-5 w-5 mr-3" />
-              Order Now
+            {user ? (
+              <>
+                <Button variant="outline" className="w-full justify-start" size="lg" asChild>
+                  <Link to="/profile">
+                    <User className="h-5 w-5 mr-3" />
+                    Profile
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start" size="lg" onClick={signOut}>
+                  <LogOut className="h-5 w-5 mr-3" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="outline" 
+                className="w-full justify-start" 
+                size="lg" 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleOpenAuthModal();
+                }}
+              >
+                <User className="h-5 w-5 mr-3" />
+                Sign In
+              </Button>
+            )}
+            <Button className="w-full justify-start" size="lg" asChild>
+              <Link to="/cart">
+                <ShoppingBag className="h-5 w-5 mr-3" />
+                Order Now
+              </Link>
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={handleCloseAuthModal}
+        defaultTab="login"
+      />
     </header>
   );
 }

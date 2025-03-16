@@ -11,6 +11,7 @@ interface AuthContextType {
   profile: Profile | null;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithSocial: (provider: 'google' | 'twitter' | 'facebook') => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
@@ -122,6 +123,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithSocial = async (provider: 'google' | 'twitter' | 'facebook') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: `Error signing in with ${provider}`,
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -148,6 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profile,
         signUp,
         signIn,
+        signInWithSocial,
         signOut,
         loading,
       }}
