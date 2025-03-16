@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, User, ShoppingBag, LogOut } from "lucide-react";
@@ -33,7 +32,6 @@ export function Header() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const location = useLocation();
   
-  // Handle scroll events
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -45,7 +43,6 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
   
-  // Close mobile menu when changing routes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
@@ -61,6 +58,13 @@ export function Header() {
 
   const handleOpenAuthModal = () => setIsAuthModalOpen(true);
   const handleCloseAuthModal = () => setIsAuthModalOpen(false);
+  const handleSignOut = () => {
+    signOut();
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+      document.body.style.overflow = "";
+    }
+  };
   
   return (
     <header
@@ -71,7 +75,6 @@ export function Header() {
     >
       <Container>
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <Link
             to="/"
             className="text-xl font-display font-medium tracking-tight"
@@ -79,7 +82,6 @@ export function Header() {
             Savoria
           </Link>
           
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <Link
@@ -97,7 +99,6 @@ export function Header() {
             ))}
           </nav>
           
-          {/* Auth and Cart Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <DropdownMenu>
@@ -114,7 +115,7 @@ export function Header() {
                   <DropdownMenuItem asChild>
                     <Link to="/orders" className="w-full cursor-pointer">Orders</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut} className="text-red-500 cursor-pointer">
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-500 cursor-pointer">
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
                   </DropdownMenuItem>
@@ -134,7 +135,6 @@ export function Header() {
             </Button>
           </div>
           
-          {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2 -mr-2 text-foreground"
             onClick={toggleMobileMenu}
@@ -149,7 +149,6 @@ export function Header() {
         </div>
       </Container>
       
-      {/* Mobile Menu */}
       <div
         className={cn(
           "fixed inset-0 bg-background z-40 transform transition-transform duration-300 ease-in-out md:hidden",
@@ -179,12 +178,12 @@ export function Header() {
             {user ? (
               <>
                 <Button variant="outline" className="w-full justify-start" size="lg" asChild>
-                  <Link to="/profile">
+                  <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}>
                     <User className="h-5 w-5 mr-3" />
                     Profile
                   </Link>
                 </Button>
-                <Button variant="outline" className="w-full justify-start" size="lg" onClick={signOut}>
+                <Button variant="outline" className="w-full justify-start" size="lg" onClick={handleSignOut}>
                   <LogOut className="h-5 w-5 mr-3" />
                   Sign Out
                 </Button>
@@ -204,7 +203,7 @@ export function Header() {
               </Button>
             )}
             <Button className="w-full justify-start" size="lg" asChild>
-              <Link to="/cart">
+              <Link to="/cart" onClick={() => setIsMobileMenuOpen(false)}>
                 <ShoppingBag className="h-5 w-5 mr-3" />
                 Order Now
               </Link>
@@ -213,7 +212,6 @@ export function Header() {
         </div>
       </div>
 
-      {/* Auth Modal */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={handleCloseAuthModal}
