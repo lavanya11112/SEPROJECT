@@ -6,6 +6,7 @@ import Auth from "./pages/Auth";
 import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 import Profile from "@/pages/Profile";
+import Contact from "@/pages/Contact";
 
 const AppRoutes = () => {
   return (
@@ -15,6 +16,7 @@ const AppRoutes = () => {
       <Route path="/auth" element={<Auth />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/contact" element={<Contact />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

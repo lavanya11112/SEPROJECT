@@ -12,9 +12,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <MotionDiv animation="fade-in" delay={0}>
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Savoria</h3>
+              <Link to="/" className="inline-block">
+                <img
+                  src="/lovable-uploads/5d9f6631-dd02-4637-9608-ac11baacefcf.png"
+                  alt="Flavours of India Logo"
+                  className="h-16 mb-2"
+                />
+              </Link>
               <p className="text-muted-foreground">
-                Experience the taste of authentic cuisine, made with love and served with passion.
+                Experience the taste of authentic Indian cuisine, made with love and served with passion.
               </p>
             </div>
           </MotionDiv>
@@ -66,14 +72,14 @@ export function Footer() {
             <ul className="space-y-2 text-muted-foreground">
               <li>123 Restaurant Street</li>
               <li>New York, NY 10001</li>
-              <li>info@savoria.com</li>
+              <li>info@flavoursofindia.com</li>
               <li>(123) 456-7890</li>
             </ul>
           </MotionDiv>
         </div>
         
         <div className="border-t border-border/50 mt-12 pt-8 text-center text-muted-foreground text-sm">
-          <p>© {currentYear} Savoria Restaurant. All rights reserved.</p>
+          <p>© {currentYear} Flavours of India. All rights reserved.</p>
         </div>
       </Container>
     </footer>

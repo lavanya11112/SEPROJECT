@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, User, ShoppingBag, LogOut } from "lucide-react";
@@ -77,9 +78,16 @@ export function Header() {
         <div className="flex items-center justify-between">
           <Link
             to="/"
-            className="text-xl font-display font-medium tracking-tight"
+            className="flex items-center"
           >
-            Savoria
+            <img 
+              src="/lovable-uploads/5d9f6631-dd02-4637-9608-ac11baacefcf.png" 
+              alt="Flavours of India Logo" 
+              className="h-10 mr-2" 
+            />
+            <span className="text-xl font-display font-medium tracking-tight hidden md:inline">
+              Flavours of India
+            </span>
           </Link>
           
           <nav className="hidden md:flex items-center space-x-8">

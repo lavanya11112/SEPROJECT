@@ -16,6 +16,7 @@ export default function Menu() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   
   // Fetch categories
   const { 
@@ -36,32 +37,49 @@ export default function Menu() {
   const { 
     data: menuItems = [],
     isLoading: menuItemsLoading,
-    refetch: refetchMenuItems
   } = useQuery({
     queryKey: ['menuItems', activeCategory],
     queryFn: () => fetchMenuItems(activeCategory === 'all' ? undefined : activeCategory),
-    enabled: !searchQuery, // Don't run this query when searching
+    enabled: !debouncedSearch, // Don't run this query when searching
   });
   
   // Search query for menu items
   const { 
     data: searchResults = [],
     isLoading: searchLoading,
-    refetch: refetchSearch
   } = useQuery({
-    queryKey: ['searchMenuItems', searchQuery],
-    queryFn: () => searchMenuItems(searchQuery),
-    enabled: !!searchQuery, // Only run when there's a search query
+    queryKey: ['searchMenuItems', debouncedSearch],
+    queryFn: () => searchMenuItems(debouncedSearch),
+    enabled: !!debouncedSearch, // Only run when there's a search query
   });
+  
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
   
   // Update filtered items when data changes
   useEffect(() => {
-    if (searchQuery) {
+    if (debouncedSearch) {
       setFilteredItems(searchResults);
+      
+      // When searching, find and set the category if all results belong to same category
+      if (searchResults.length > 0) {
+        const firstCategoryId = searchResults[0]?.category_id;
+        const allSameCategory = searchResults.every(item => item.category_id === firstCategoryId);
+        
+        if (allSameCategory && firstCategoryId) {
+          setActiveCategory(firstCategoryId);
+        }
+      }
     } else {
       setFilteredItems(menuItems);
     }
-  }, [searchQuery, searchResults, menuItems]);
+  }, [debouncedSearch, searchResults, menuItems]);
   
   // Handle search input changes
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +89,10 @@ export default function Menu() {
   // Handle category changes
   const handleCategoryChange = (categoryId: string) => {
     setActiveCategory(categoryId);
-    setSearchQuery(''); // Clear search when changing category
+    if (debouncedSearch) {
+      setSearchQuery(''); // Clear search when changing category
+      setDebouncedSearch('');
+    }
   };
   
   const isLoading = categoriesLoading || menuItemsLoading || searchLoading;

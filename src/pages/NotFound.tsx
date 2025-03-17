@@ -26,7 +26,8 @@ export default function NotFound() {
             <h1 className="text-9xl font-display font-medium mb-4">404</h1>
             <h2 className="text-2xl font-medium mb-4">Page Not Found</h2>
             <p className="text-muted-foreground mb-8">
-              The page you're looking for doesn't exist or has been moved.
+              The page you're looking for doesn't exist or has been moved. 
+              Return to the Flavours of India homepage.
             </p>
             <Button className="rounded-full" asChild>
               <a href="/">Return to Home</a>

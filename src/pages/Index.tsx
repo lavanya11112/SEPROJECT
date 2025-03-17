@@ -10,9 +10,14 @@ import { Footer } from "@/components/layout/Footer";
 import { MenuItem, menuItems } from "@/lib/menu-data";
 import { FoodCategory } from "@/components/ui/FoodCategory";
 import { foodCategories } from "@/lib/food-categories";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 export default function Index() {
   const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const { user } = useAuth();
   
   // Get 4 popular items for showcase
   const popularItems = menuItems
@@ -21,6 +26,25 @@ export default function Index() {
   
   const handleViewMenu = () => {
     navigate("/menu");
+  };
+
+  const handleAddToCart = async (e: React.MouseEvent, item: MenuItem) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "You need to be signed in to add items to cart",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      await addToCart(item, 1);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
   };
   
   return (
@@ -126,6 +150,7 @@ export default function Index() {
                   key={item.id}
                   item={{...item, price: item.price * 82}} // Converting to rupees (approx USD to INR)
                   delay={index * 100}
+                  onAddToCart={handleAddToCart}
                 />
               ))}
             </div>
@@ -170,7 +195,13 @@ export default function Index() {
   );
 }
 
-function PopularItemCard({ item, delay }: { item: MenuItem; delay: number }) {
+interface PopularItemCardProps {
+  item: MenuItem;
+  delay: number;
+  onAddToCart: (e: React.MouseEvent, item: MenuItem) => void;
+}
+
+function PopularItemCard({ item, delay, onAddToCart }: PopularItemCardProps) {
   const navigate = useNavigate();
   
   return (
@@ -193,14 +224,21 @@ function PopularItemCard({ item, delay }: { item: MenuItem; delay: number }) {
           <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
             {item.description}
           </p>
-          <div className="mt-auto">
+          <div className="mt-auto flex flex-col gap-2">
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-xs rounded-full border-amber-300 hover:bg-amber-50"
+              className="text-xs rounded-full border-amber-300 hover:bg-amber-50"
               onClick={() => navigate("/menu")}
             >
               View Details
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs rounded-full bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={(e) => onAddToCart(e, item)}
+            >
+              Add to Cart
             </Button>
           </div>
         </div>
