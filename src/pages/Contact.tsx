@@ -62,7 +62,7 @@ export default function Contact() {
           </MotionDiv>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
-            <MotionDiv animation="slide-right" className="space-y-8">
+            <MotionDiv animation="fade-in" className="space-y-8">
               <div>
                 <h2 className="text-2xl font-medium mb-6">Get in Touch</h2>
                 <p className="text-muted-foreground mb-8">
@@ -108,7 +108,7 @@ export default function Contact() {
               </div>
             </MotionDiv>
 
-            <MotionDiv animation="slide-left">
+            <MotionDiv animation="fade-in">
               <form onSubmit={handleSubmit} className="space-y-6 bg-secondary p-8 rounded-xl">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium mb-2">

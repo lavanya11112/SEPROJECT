@@ -13,6 +13,7 @@ import { foodCategories } from "@/lib/food-categories";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { adaptMenuItemToDatabase } from "@/lib/menu-adapters";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -41,7 +42,9 @@ export default function Index() {
     }
     
     try {
-      await addToCart(item, 1);
+      // Convert menu-data MenuItem to database MenuItem
+      const databaseItem = adaptMenuItemToDatabase(item);
+      await addToCart(databaseItem, 1);
     } catch (error) {
       console.error("Error adding to cart:", error);
     }
