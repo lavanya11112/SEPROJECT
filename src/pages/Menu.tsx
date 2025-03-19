@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCategories, fetchMenuItems, searchMenuItems } from "@/lib/api";
 import { MenuItem, MenuCategory } from "@/types/database";
+import { menuItems as localMenuItems } from "@/lib/menu-data";
+import { adaptMenuItemToDatabase } from "@/lib/menu-adapters";
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState("all");
@@ -77,9 +79,17 @@ export default function Menu() {
         }
       }
     } else {
-      setFilteredItems(menuItems);
+      // If no data from API, use local menu items as fallback for parotta category
+      if (menuItems.length === 0 && activeCategory === "parotta") {
+        const parottaItems = localMenuItems
+          .filter(item => item.category === "parotta")
+          .map(adaptMenuItemToDatabase);
+        setFilteredItems(parottaItems);
+      } else {
+        setFilteredItems(menuItems);
+      }
     }
-  }, [debouncedSearch, searchResults, menuItems]);
+  }, [debouncedSearch, searchResults, menuItems, activeCategory]);
   
   // Handle search input changes
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -106,7 +106,7 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
           </div>
           
           <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
-            {item.description}
+            {item.description || ""}
           </p>
           
           <div className="mt-auto">
