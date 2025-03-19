@@ -241,6 +241,16 @@ export const menuItems: MenuItem[] = [
     image: "https://images.unsplash.com/photo-1525351326368-efbb5cb6814d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     category: "parotta",
   },
+  {
+    id: "parotta12",
+    name: "Chicken Parotta",
+    description: "Traditional South Indian layered flatbread served with spicy chicken curry, a popular street food.",
+    price: 100,
+    image: "https://images.unsplash.com/photo-1626100134130-9969e2dc6546?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    category: "parotta",
+    spicy: true,
+    popular: true,
+  },
 ];
 
 export function getMenuItemsByCategory(categoryId: string): MenuItem[] {
