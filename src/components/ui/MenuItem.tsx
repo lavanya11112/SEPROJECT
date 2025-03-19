@@ -37,8 +37,18 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
     
     try {
       await addToCart(item, 1);
+      toast({
+        title: "Added to cart",
+        description: `${item.name} has been added to your cart.`,
+        variant: "default",
+      });
     } catch (error) {
       console.error("Error adding to cart:", error);
+      toast({
+        title: "Error",
+        description: "There was an error adding this item to your cart.",
+        variant: "destructive",
+      });
     }
   };
   
