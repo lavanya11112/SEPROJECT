@@ -7,6 +7,7 @@ import { useCart } from "@/contexts/CartContext";
 import { MenuItem as MenuItemType } from "@/types/database";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { IndianRupee } from "lucide-react";
 
 interface MenuItemProps {
   item: MenuItemType;
@@ -100,8 +101,9 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
             <h3 className="font-medium text-lg leading-tight">
               {item.name}
             </h3>
-            <div className="font-medium text-base ml-2 whitespace-nowrap">
-              ₹{displayPrice.toFixed(0)}
+            <div className="font-medium text-base ml-2 whitespace-nowrap flex items-center">
+              <IndianRupee className="h-3.5 w-3.5 mr-0.5" />
+              {displayPrice.toFixed(0)}
             </div>
           </div>
           
