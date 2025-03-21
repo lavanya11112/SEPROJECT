@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { CategoryTabs } from "@/components/ui/CategoryTabs";
 import { MenuItem as MenuItemComponent } from "@/components/ui/MenuItem";
 import { Container } from "@/components/ui/Container";
@@ -19,6 +20,16 @@ export default function Menu() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const location = useLocation();
+  
+  // Parse category from URL if present
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryParam = params.get('category');
+    if (categoryParam) {
+      setActiveCategory(categoryParam);
+    }
+  }, [location.search]);
   
   // Fetch categories
   const { 

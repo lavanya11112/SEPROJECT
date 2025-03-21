@@ -38,6 +38,7 @@ export default function Index() {
         description: "You need to be signed in to add items to cart",
         variant: "destructive",
       });
+      navigate("/auth");
       return;
     }
     
@@ -48,6 +49,10 @@ export default function Index() {
     } catch (error) {
       console.error("Error adding to cart:", error);
     }
+  };
+  
+  const handleCategoryClick = (categoryId: string) => {
+    navigate(`/menu?category=${categoryId}`);
   };
   
   return (
@@ -106,7 +111,7 @@ export default function Index() {
                     key={category.id}
                     name={category.name}
                     image={category.image}
-                    onClick={() => navigate("/menu")}
+                    onClick={() => handleCategoryClick(category.id)}
                   />
                 ))}
               </div>
