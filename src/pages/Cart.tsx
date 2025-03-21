@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, Link, useNavigate } from "react-router-dom";
 import { Container } from "@/components/ui/Container";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -11,31 +11,85 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Trash2, Minus, Plus, ShoppingBag } from "lucide-react";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Cart() {
-  const { user } = useAuth();
-  const { cartItems, totalItems, totalAmount, removeFromCart, updateQuantity, clearCart, loading } = useCart();
+  const { user, loading: authLoading } = useAuth();
+  const { cartItems, totalItems, totalAmount, removeFromCart, updateQuantity, clearCart, loading: cartLoading } = useCart();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    // If user is not authenticated and auth is finished loading, redirect to auth page
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
+  
+  const handleQuantityChange = async (cartItemId: string, newQuantity: number) => {
+    try {
+      if (newQuantity > 0) {
+        await updateQuantity(cartItemId, newQuantity);
+      } else {
+        await removeFromCart(cartItemId);
+      }
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update quantity",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleRemoveItem = async (cartItemId: string) => {
+    try {
+      await removeFromCart(cartItemId);
+    } catch (error) {
+      console.error("Error removing item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove item from cart",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleClearCart = async () => {
+    try {
+      await clearCart();
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear cart",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Loading state while determining authentication
+  if (authLoading) {
+    return (
+      <>
+        <Header />
+        <main className="pt-20 min-h-screen">
+          <Container>
+            <div className="text-center py-16">
+              <h3 className="text-lg mb-2">Loading...</h3>
+            </div>
+          </Container>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+  
   // Redirect to login if not authenticated
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
-  
-  const handleQuantityChange = (cartItemId: string, newQuantity: number) => {
-    if (newQuantity > 0) {
-      updateQuantity(cartItemId, newQuantity);
-    } else {
-      removeFromCart(cartItemId);
-    }
-  };
-  
-  const handleRemoveItem = (cartItemId: string) => {
-    removeFromCart(cartItemId);
-  };
-  
-  const handleClearCart = () => {
-    clearCart();
-  };
   
   return (
     <>
@@ -51,7 +105,7 @@ export default function Cart() {
             </p>
           </MotionDiv>
           
-          {loading ? (
+          {cartLoading ? (
             <div className="text-center py-16">
               <h3 className="text-lg mb-2">Loading your cart...</h3>
             </div>
