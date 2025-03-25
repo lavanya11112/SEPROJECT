@@ -6,9 +6,8 @@ import { cn } from "@/lib/utils";
 import { useCart } from "@/contexts/CartContext";
 import { MenuItem as MenuItemType } from "@/types/database";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { IndianRupee } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface MenuItemProps {
   item: MenuItemType;
@@ -21,8 +20,6 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
   const [hovered, setHovered] = useState(false);
   const { addToCart } = useCart();
   const { user } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
   
   // Converting price to rupees for display (if not already converted)
   const displayPrice = item.price > 100 ? item.price : item.price * 82;
@@ -36,7 +33,6 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
         description: "You need to be signed in to add items to cart",
         variant: "destructive",
       });
-      navigate("/auth");
       return;
     }
     
