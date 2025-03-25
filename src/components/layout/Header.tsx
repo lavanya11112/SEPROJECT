@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, User, ShoppingBag, LogOut } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { useCart } from "@/contexts/CartContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,10 +29,12 @@ const navItems: NavItem[] = [
 
 export function Header() {
   const { user, signOut } = useAuth();
+  const { totalItems } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -65,6 +68,15 @@ export function Header() {
       setIsMobileMenuOpen(false);
       document.body.style.overflow = "";
     }
+  };
+  
+  const handleCartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user) {
+      handleOpenAuthModal();
+      return;
+    }
+    navigate('/cart');
   };
   
   return (
@@ -135,11 +147,18 @@ export function Header() {
                 Sign In
               </Button>
             )}
-            <Button size="sm" className="rounded-full" asChild>
-              <Link to="/cart">
-                <ShoppingBag className="h-5 w-5 mr-2" />
-                Order
-              </Link>
+            <Button 
+              size="sm" 
+              className="rounded-full relative" 
+              onClick={handleCartClick}
+            >
+              <ShoppingBag className="h-5 w-5 mr-2" />
+              Order
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
             </Button>
           </div>
           
@@ -210,11 +229,21 @@ export function Header() {
                 Sign In
               </Button>
             )}
-            <Button className="w-full justify-start" size="lg" asChild>
-              <Link to="/cart" onClick={() => setIsMobileMenuOpen(false)}>
-                <ShoppingBag className="h-5 w-5 mr-3" />
-                Order Now
-              </Link>
+            <Button 
+              className="w-full justify-start relative" 
+              size="lg" 
+              onClick={(e) => {
+                setIsMobileMenuOpen(false);
+                handleCartClick(e);
+              }}
+            >
+              <ShoppingBag className="h-5 w-5 mr-3" />
+              Order Now
+              {totalItems > 0 && (
+                <span className="absolute left-9 top-4 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
             </Button>
           </div>
         </div>

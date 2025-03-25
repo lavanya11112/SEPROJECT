@@ -53,9 +53,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching cart:', error);
+        throw error;
+      }
       
-      setCartItems(data as CartItem[] || []);
+      // Ensure we always have an array, even if data is null
+      setCartItems(data ? data as CartItem[] : []);
     } catch (error) {
       console.error('Error fetching cart:', error);
       toast({
@@ -63,6 +67,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         description: 'Failed to load your cart',
         variant: 'destructive',
       });
+      // Set empty array on error to prevent UI issues
+      setCartItems([]);
     } finally {
       setLoading(false);
     }
@@ -75,7 +81,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         description: 'You need to be signed in to add items to cart',
         variant: 'destructive',
       });
-      return;
+      return Promise.reject(new Error('Not authenticated'));
     }
 
     setLoading(true);
@@ -85,21 +91,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       
       if (existingItem) {
         // Update quantity if already in cart
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('cart')
           .update({ quantity: existingItem.quantity + quantity })
-          .eq('id', existingItem.id);
+          .eq('id', existingItem.id)
+          .select(`*, menu_item:menu_items(*)`);
           
         if (error) throw error;
         
         // Update local state
-        setCartItems(prevItems => 
-          prevItems.map(item => 
-            item.id === existingItem.id 
-              ? { ...item, quantity: item.quantity + quantity }
-              : item
-          )
-        );
+        if (data && data[0]) {
+          setCartItems(prevItems => 
+            prevItems.map(item => 
+              item.id === existingItem.id 
+                ? data[0] as CartItem
+                : item
+            )
+          );
+        } else {
+          // Refresh cart items if no data returned
+          await fetchCartItems();
+        }
       } else {
         // Add new item to cart
         const { data, error } = await supabase
@@ -116,6 +128,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         // Update local state
         if (data && data[0]) {
           setCartItems(prevItems => [...prevItems, data[0] as CartItem]);
+        } else {
+          // Refresh cart items if no data returned
+          await fetchCartItems();
         }
       }
       
@@ -123,6 +138,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         title: 'Added to cart',
         description: `${quantity} x ${menuItem.name} added to your cart`,
       });
+      
+      return Promise.resolve();
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast({
@@ -130,13 +147,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         description: 'Failed to add item to cart',
         variant: 'destructive',
       });
+      return Promise.reject(error);
     } finally {
       setLoading(false);
     }
   };
 
   const updateQuantity = async (cartItemId: string, quantity: number) => {
-    if (!user) return;
+    if (!user) return Promise.reject(new Error('Not authenticated'));
     
     if (quantity <= 0) {
       return removeFromCart(cartItemId);
@@ -144,21 +162,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('cart')
         .update({ quantity })
-        .eq('id', cartItemId);
+        .eq('id', cartItemId)
+        .select(`*, menu_item:menu_items(*)`);
         
       if (error) throw error;
       
       // Update local state
-      setCartItems(prevItems => 
-        prevItems.map(item => 
-          item.id === cartItemId 
-            ? { ...item, quantity }
-            : item
-        )
-      );
+      if (data && data[0]) {
+        setCartItems(prevItems => 
+          prevItems.map(item => 
+            item.id === cartItemId 
+              ? data[0] as CartItem
+              : item
+          )
+        );
+      } else {
+        // Refresh cart items if no data returned
+        await fetchCartItems();
+      }
+      
+      return Promise.resolve();
     } catch (error) {
       console.error('Error updating cart:', error);
       toast({
@@ -166,13 +192,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         description: 'Failed to update cart',
         variant: 'destructive',
       });
+      return Promise.reject(error);
     } finally {
       setLoading(false);
     }
   };
 
   const removeFromCart = async (cartItemId: string) => {
-    if (!user) return;
+    if (!user) return Promise.reject(new Error('Not authenticated'));
     
     setLoading(true);
     try {
@@ -190,6 +217,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         title: 'Item removed',
         description: 'Item removed from your cart',
       });
+      
+      return Promise.resolve();
     } catch (error) {
       console.error('Error removing from cart:', error);
       toast({
@@ -197,13 +226,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         description: 'Failed to remove item from cart',
         variant: 'destructive',
       });
+      return Promise.reject(error);
     } finally {
       setLoading(false);
     }
   };
 
   const clearCart = async () => {
-    if (!user) return;
+    if (!user) return Promise.reject(new Error('Not authenticated'));
     
     setLoading(true);
     try {
@@ -221,6 +251,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         title: 'Cart cleared',
         description: 'All items have been removed from your cart',
       });
+      
+      return Promise.resolve();
     } catch (error) {
       console.error('Error clearing cart:', error);
       toast({
@@ -228,6 +260,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         description: 'Failed to clear cart',
         variant: 'destructive',
       });
+      return Promise.reject(error);
     } finally {
       setLoading(false);
     }
