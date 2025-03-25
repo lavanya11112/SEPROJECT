@@ -1,76 +1,69 @@
-# 🍽️ Restaurant Billing Website
+# Welcome to your Lovable project
 
-Welcome to the **Restaurant Billing Website** — a seamless, modern solution designed to manage restaurant orders and generate bills efficiently. Built with a robust tech stack, this project ensures a clean user experience with responsive design and real-time management.
+## Project info
 
-## 🛠️ Technologies Used
+**URL**: https://lovable.dev/projects/363f0b75-6830-47b6-b94f-2ff1ea1d20b8
 
-- 🚀 **Vite** - Fast and optimized build tool
-- 💡 **TypeScript** - Strongly typed JavaScript for better code management
-- ⚛️ **React** - Component-based UI development
-- 🧱 **shadcn-ui** - Modern, customizable UI components
-- 🎨 **Tailwind CSS** - Utility-first CSS framework for responsive design
+## How can I edit this code?
 
----
+There are several ways of editing your application.
 
-## 🌟 Features
+**Use Lovable**
 
-- 📋 **Order Management** - Easily manage and track restaurant orders
-- 🧾 **Billing System** - Generate detailed, printable customer bills
-- 📱 **Responsive Design** - Mobile-friendly interface
-- 🔎 **Real-time Updates** - Seamless order tracking with instant updates
-- 🎯 **Customizable UI** - Tailor the design using shadcn-ui components
+Simply visit the [Lovable Project](https://lovable.dev/projects/363f0b75-6830-47b6-b94f-2ff1ea1d20b8) and start prompting.
 
----
+Changes made via Lovable will be committed automatically to this repo.
 
-## 🚀 Getting Started
+**Use your preferred IDE**
 
-Follow these steps to set up and run the project on your local machine.
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-### Prerequisites
-Ensure you have the following installed:
-- **Node.js** (LTS recommended)
-- **npm** or **yarn**
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-### Installation
-1. **Clone the Repository:**
-    ```bash
-    git clone https://github.com/your-username/restaurant-billing-website.git
-    ```
-2. **Navigate to the Directory:**
-    ```bash
-    cd restaurant-billing-website
-    ```
-3. **Install Dependencies:**
-    ```bash
-    npm install
-    ```
+Follow these steps:
 
-### Development Server
-Start the local development server with hot-reloading enabled:
-```bash
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
+
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
-Visit `http://localhost:5173` to view the application.
 
-### Build for Production
-Create a production-ready build using:
-```bash
-npm run build
-```
+**Edit a file directly in GitHub**
 
-### Run Tests
-Run unit tests with:
-```bash
-npm run test
-```
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
----
+**Use GitHub Codespaces**
 
-## 🛡️ License
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-This project is licensed under the **MIT License**. Feel free to customize it to fit your needs.
+## What technologies are used for this project?
 
+This project is built with .
 
----
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
+## How can I deploy this project?
 
+Simply open [Lovable](https://lovable.dev/projects/363f0b75-6830-47b6-b94f-2ff1ea1d20b8) and click on Share -> Publish.
+
+## I want to use a custom domain - is that possible?
+
+We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
