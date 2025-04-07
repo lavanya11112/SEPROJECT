@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { CartItem, MenuItem } from '@/types/database';
 
 interface CartContextType {
@@ -22,7 +23,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   // Calculate derived values
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
@@ -55,14 +56,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
       
-      setCartItems(data as CartItem[]);
+      // Ensure we always have an array even if data is null
+      setCartItems(data || []);
     } catch (error) {
       console.error('Error fetching cart:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load your cart',
-        variant: 'destructive',
-      });
+      toast.error('Failed to load your cart');
     } finally {
       setLoading(false);
     }
@@ -70,11 +68,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = async (menuItem: MenuItem, quantity: number) => {
     if (!user) {
-      toast({
-        title: 'Please sign in',
-        description: 'You need to be signed in to add items to cart',
-        variant: 'destructive',
-      });
+      toast.error('Please sign in to add items to cart');
       return;
     }
 
@@ -119,17 +113,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
       }
       
-      toast({
-        title: 'Added to cart',
-        description: `${quantity} x ${menuItem.name} added to your cart`,
-      });
+      toast.success(`${quantity} x ${menuItem.name} added to your cart`);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to add item to cart',
-        variant: 'destructive',
-      });
+      toast.error('Failed to add item to cart');
     } finally {
       setLoading(false);
     }
@@ -161,11 +148,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       );
     } catch (error) {
       console.error('Error updating cart:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update cart',
-        variant: 'destructive',
-      });
+      toast.error('Failed to update cart');
     } finally {
       setLoading(false);
     }
@@ -186,17 +169,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Update local state
       setCartItems(prevItems => prevItems.filter(item => item.id !== cartItemId));
       
-      toast({
-        title: 'Item removed',
-        description: 'Item removed from your cart',
-      });
+      toast.success('Item removed from your cart');
     } catch (error) {
       console.error('Error removing from cart:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to remove item from cart',
-        variant: 'destructive',
-      });
+      toast.error('Failed to remove item from cart');
     } finally {
       setLoading(false);
     }
@@ -217,17 +193,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Update local state
       setCartItems([]);
       
-      toast({
-        title: 'Cart cleared',
-        description: 'All items have been removed from your cart',
-      });
+      toast.success('All items have been removed from your cart');
     } catch (error) {
       console.error('Error clearing cart:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to clear cart',
-        variant: 'destructive',
-      });
+      toast.error('Failed to clear cart');
     } finally {
       setLoading(false);
     }

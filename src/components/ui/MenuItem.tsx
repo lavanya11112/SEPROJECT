@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useCart } from "@/contexts/CartContext";
 import { MenuItem as MenuItemType } from "@/types/database";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { IndianRupee } from "lucide-react";
 
 interface MenuItemProps {
@@ -21,35 +21,23 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
   const { addToCart } = useCart();
   const { user } = useAuth();
   
-  // Converting price to rupees for display (if not already converted)
-  const displayPrice = item.price > 100 ? item.price : item.price * 82;
+  // Use the price directly from the menu item without conversion
+  const displayPrice = item.price;
   
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (!user) {
-      toast({
-        title: "Please sign in",
-        description: "You need to be signed in to add items to cart",
-        variant: "destructive",
-      });
+      toast.error("Please sign in to add items to cart");
       return;
     }
     
     try {
       await addToCart(item, 1);
-      toast({
-        title: "Added to cart",
-        description: `${item.name} has been added to your cart.`,
-        variant: "default",
-      });
+      toast.success(`${item.name} has been added to your cart.`);
     } catch (error) {
       console.error("Error adding to cart:", error);
-      toast({
-        title: "Error",
-        description: "There was an error adding this item to your cart.",
-        variant: "destructive",
-      });
+      toast.error("There was an error adding this item to your cart.");
     }
   };
   
