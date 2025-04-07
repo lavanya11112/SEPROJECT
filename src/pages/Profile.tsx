@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   ShoppingBag, 
@@ -30,6 +30,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Define the menu options for the sidebar
 const menuOptions = [
@@ -45,29 +47,71 @@ const menuOptions = [
   { id: 'logout', label: 'Log-out', icon: LogOut },
 ];
 
-// Sample orders data for demonstration
-const sampleOrders = [
-  { id: 'ORD-7829', date: '15 Jun 2023', total: 128.00, status: 'Completed' },
-  { id: 'ORD-7830', date: '12 Jun 2023', total: 85.50, status: 'On the Way' },
-  { id: 'ORD-7831', date: '10 Jun 2023', total: 42.25, status: 'Processing' },
-  { id: 'ORD-7832', date: '05 Jun 2023', total: 76.80, status: 'Completed' },
-];
-
 export default function Profile() {
   const { user, profile, signOut } = useAuth();
   const [activeOption, setActiveOption] = useState('dashboard');
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   
   // Redirect if not logged in
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
+
+  useEffect(() => {
+    // Fetch recent orders for the user
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (error) throw error;
+        setOrders(data || []);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        toast.error('Could not load your recent orders');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchOrders();
+    }
+  }, [user]);
   
-  const handleMenuClick = (optionId: string) => {
+  const handleMenuClick = (optionId) => {
     if (optionId === 'logout') {
       signOut();
+    } else if (optionId === 'orders') {
+      setActiveOption('orders');
+      // If we had an orders page we could navigate there
+    } else if (optionId === 'settings') {
+      setActiveOption('settings');
+      // If we had a settings page we could navigate there
     } else {
       setActiveOption(optionId);
+      toast.info(`${optionId.charAt(0).toUpperCase() + optionId.slice(1)} feature coming soon!`);
     }
+  };
+
+  const handleEditProfile = () => {
+    toast.info("Edit profile feature coming soon!");
+  };
+
+  const handleEditAddress = () => {
+    toast.info("Edit address feature coming soon!");
+  };
+
+  const handleViewAllOrders = () => {
+    setActiveOption('orders');
+    toast.info("Full order history coming soon!");
   };
   
   // Get user initials for avatar fallback
@@ -83,7 +127,7 @@ export default function Profile() {
   };
   
   // Get status badge styling
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status) => {
     switch (status) {
       case 'Processing':
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Processing</Badge>;
@@ -91,9 +135,26 @@ export default function Profile() {
         return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">On the Way</Badge>;
       case 'Completed':
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Completed</Badge>;
+      case 'pending':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Pending</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+  
+  // Use orders from database or fallback to sample data if empty
+  const displayOrders = orders.length > 0 ? orders : [
+    { id: 'ORD-7829', date: '15 Jun 2023', total_amount: 128.00, status: 'Completed' },
+    { id: 'ORD-7830', date: '12 Jun 2023', total_amount: 85.50, status: 'On the Way' },
+    { id: 'ORD-7831', date: '10 Jun 2023', total_amount: 42.25, status: 'Processing' },
+    { id: 'ORD-7832', date: '05 Jun 2023', total_amount: 76.80, status: 'Completed' },
+  ];
+
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
   };
   
   return (
@@ -151,7 +212,7 @@ export default function Profile() {
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button variant="outline" size="sm" className="rounded-full">
+                      <Button variant="outline" size="sm" className="rounded-full" onClick={handleEditProfile}>
                         <UserPen className="mr-1.5 h-3.5 w-3.5" />
                         Edit Profile
                       </Button>
@@ -193,7 +254,7 @@ export default function Profile() {
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button variant="outline" size="sm" className="rounded-full">
+                      <Button variant="outline" size="sm" className="rounded-full" onClick={handleEditAddress}>
                         <Edit className="mr-1.5 h-3.5 w-3.5" />
                         Edit Address
                       </Button>
@@ -210,38 +271,42 @@ export default function Profile() {
                         View your recent order history
                       </CardDescription>
                     </div>
-                    <Button variant="ghost" size="sm" className="gap-1 text-sm">
+                    <Button variant="ghost" size="sm" className="gap-1 text-sm" onClick={handleViewAllOrders}>
                       View All
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </CardHeader>
                   <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Order ID</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Total</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {sampleOrders.map((order) => (
-                          <TableRow key={order.id}>
-                            <TableCell className="font-medium">{order.id}</TableCell>
-                            <TableCell>{order.date}</TableCell>
-                            <TableCell>${order.total.toFixed(2)}</TableCell>
-                            <TableCell>{getStatusBadge(order.status)}</TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="sm" className="h-8">
-                                View Details
-                              </Button>
-                            </TableCell>
+                    {loading ? (
+                      <div className="text-center py-6">Loading your recent orders...</div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Total</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Action</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {displayOrders.map((order) => (
+                            <TableRow key={order.id}>
+                              <TableCell className="font-medium">{order.id}</TableCell>
+                              <TableCell>{order.date || formatDate(order.created_at)}</TableCell>
+                              <TableCell>₹{order.total_amount?.toFixed(2)}</TableCell>
+                              <TableCell>{getStatusBadge(order.status)}</TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="sm" className="h-8" onClick={() => toast.info(`Order details for ${order.id} coming soon!`)}>
+                                  View Details
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
                   </CardContent>
                 </Card>
               </div>
