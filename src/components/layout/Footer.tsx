@@ -1,10 +1,15 @@
 
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Container } from "@/components/ui/Container";
 import { MotionDiv } from "@/components/ui/MotionDiv";
+import { PrivacyPolicyDialog } from "@/components/dialogs/PrivacyPolicyDialog";
+import { TermsOfServiceDialog } from "@/components/dialogs/TermsOfServiceDialog";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
+  const [isTermsOfServiceOpen, setIsTermsOfServiceOpen] = useState(false);
   
   return (
     <footer className="bg-secondary py-16 mt-20">
@@ -55,14 +60,20 @@ export function Footer() {
             <h4 className="text-sm font-medium uppercase tracking-wider mb-4">Legal</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors hover-underline inline-block">
+                <button 
+                  onClick={() => setIsPrivacyPolicyOpen(true)} 
+                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline inline-block"
+                >
                   Privacy Policy
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors hover-underline inline-block">
+                <button 
+                  onClick={() => setIsTermsOfServiceOpen(true)} 
+                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline inline-block"
+                >
                   Terms of Service
-                </Link>
+                </button>
               </li>
             </ul>
           </MotionDiv>
@@ -82,6 +93,17 @@ export function Footer() {
           <p>© {currentYear} Flavours of India. All rights reserved.</p>
         </div>
       </Container>
+
+      {/* Dialog components */}
+      <PrivacyPolicyDialog 
+        isOpen={isPrivacyPolicyOpen} 
+        onClose={() => setIsPrivacyPolicyOpen(false)} 
+      />
+      
+      <TermsOfServiceDialog 
+        isOpen={isTermsOfServiceOpen} 
+        onClose={() => setIsTermsOfServiceOpen(false)} 
+      />
     </footer>
   );
 }
