@@ -59,8 +59,9 @@ export function Header() {
 
   const handleOpenAuthModal = () => setIsAuthModalOpen(true);
   const handleCloseAuthModal = () => setIsAuthModalOpen(false);
-  const handleSignOut = () => {
-    signOut();
+  
+  const handleSignOut = async () => {
+    await signOut();
     if (isMobileMenuOpen) {
       setIsMobileMenuOpen(false);
       document.body.style.overflow = "";
