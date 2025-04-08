@@ -27,7 +27,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     const { name, email, subject, message }: ContactFormData = await req.json();
-    const adminEmail = 'nikhithamamillapalli99@gmail.com';
+    const adminEmail = 'nikhithamamillapalli99@gmail.com'; // Fixed admin email address
     
     // Store contact message in Supabase database
     const { data, error } = await supabase
