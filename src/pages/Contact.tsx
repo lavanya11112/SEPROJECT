@@ -10,32 +10,41 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+const contactFormSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  subject: z.string().min(5, { message: "Subject must be at least 5 characters." }),
+  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
+});
+
+type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  
+  const form = useForm<ContactFormValues>({
+    resolver: zodResolver(contactFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      subject: "",
+      message: "",
+    },
+  });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (values: ContactFormValues) => {
     setIsSubmitting(true);
     
     try {
       // Send the contact form data to our edge function
       const { error } = await supabase.functions.invoke('send-contact-email', {
-        body: formData
+        body: values
       });
       
       if (error) throw error;
@@ -46,12 +55,7 @@ export default function Contact() {
       });
       
       // Reset form
-      setFormData({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
-      });
+      form.reset();
     } catch (error) {
       console.error("Error sending contact message:", error);
       toast({
@@ -87,6 +91,7 @@ export default function Contact() {
                 </p>
               </div>
 
+              {/* Contact information */}
               <div className="flex items-start space-x-4">
                 <MapPin className="h-5 w-5 text-amber-600 mt-1" />
                 <div>
@@ -126,73 +131,77 @@ export default function Contact() {
             </MotionDiv>
 
             <MotionDiv animation="fade-in">
-              <form onSubmit={handleSubmit} className="space-y-6 bg-secondary p-8 rounded-xl">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium mb-2">
-                    Your Name
-                  </label>
-                  <Input
-                    id="name"
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 bg-secondary p-8 rounded-xl">
+                  <FormField
+                    control={form.control}
                     name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    placeholder="John Doe"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Your Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-2">
-                    Email Address
-                  </label>
-                  <Input
-                    id="email"
+                  
+                  <FormField
+                    control={form.control}
                     name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="johndoe@example.com"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="johndoe@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-medium mb-2">
-                    Subject
-                  </label>
-                  <Input
-                    id="subject"
+                  
+                  <FormField
+                    control={form.control}
                     name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    placeholder="Reservation Inquiry"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subject</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Reservation Inquiry" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-
-                <div>
-                  <label htmlFor="message" className="block text-sm font-medium mb-2">
-                    Message
-                  </label>
-                  <Textarea
-                    id="message"
+                  
+                  <FormField
+                    control={form.control}
                     name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    placeholder="Write your message here..."
-                    className="min-h-[150px]"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Message</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Write your message here..." 
+                            className="min-h-[150px]" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Sending..." : "Send Message"}
-                </Button>
-              </form>
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Sending..." : "Send Message"}
+                  </Button>
+                </form>
+              </Form>
             </MotionDiv>
           </div>
 
