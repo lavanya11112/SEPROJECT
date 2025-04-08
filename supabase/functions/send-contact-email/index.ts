@@ -42,11 +42,24 @@ serve(async (req) => {
         }
       ]);
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error storing contact message:", error);
+      throw error;
+    }
+    
+    console.log("Contact message stored successfully");
 
     // Send notification email to admin
     try {
       const client = new SmtpClient();
+      
+      // Log SMTP configuration for debugging
+      console.log("Connecting to SMTP with:", {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        username: Deno.env.get("SMTP_USERNAME") ? "SMTP_USERNAME is set" : "SMTP_USERNAME is NOT set",
+        password: Deno.env.get("SMTP_PASSWORD") ? "SMTP_PASSWORD is set" : "SMTP_PASSWORD is NOT set",
+      });
       
       await client.connectTLS({
         hostname: "smtp.gmail.com",
@@ -55,31 +68,29 @@ serve(async (req) => {
         password: Deno.env.get("SMTP_PASSWORD") || "",
       });
       
+      const emailContent = `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>From:</strong> ${name} (${email})</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>Message:</strong></p>
+        <p style="white-space: pre-line;">${message}</p>
+      `;
+      
       await client.send({
-        from: "noreply@flavoursofindia.com",
+        from: Deno.env.get("SMTP_USERNAME") || "noreply@flavoursofindia.com", 
         to: adminEmail,
         subject: `New Contact Form: ${subject}`,
-        content: `
-          <h2>New Contact Form Submission</h2>
-          <p><strong>From:</strong> ${name} (${email})</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <p><strong>Message:</strong></p>
-          <p style="white-space: pre-line;">${message}</p>
-        `,
-        html: `
-          <h2>New Contact Form Submission</h2>
-          <p><strong>From:</strong> ${name} (${email})</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <p><strong>Message:</strong></p>
-          <p style="white-space: pre-line;">${message}</p>
-        `,
+        content: emailContent,
+        html: emailContent,
       });
       
       await client.close();
       console.log("Email notification sent to admin successfully");
     } catch (emailError) {
-      // Log the error but don't fail the request, as we've already stored the message in the database
+      // Log the detailed error for debugging
       console.error("Error sending email notification:", emailError);
+      console.error("Error details:", JSON.stringify(emailError, null, 2));
+      // Don't throw here - we still want to return success for storing the message
     }
 
     return new Response(

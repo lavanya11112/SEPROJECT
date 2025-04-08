@@ -8,12 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, MapPin, Phone } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -26,7 +33,7 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -43,26 +50,20 @@ export default function Contact() {
     
     try {
       // Send the contact form data to our edge function
-      const { error } = await supabase.functions.invoke('send-contact-email', {
+      const { error, data } = await supabase.functions.invoke('send-contact-email', {
         body: values
       });
       
       if (error) throw error;
       
-      toast({
-        title: "Message sent!",
-        description: "We'll get back to you as soon as possible.",
-      });
+      // Show success dialog
+      setShowSuccessDialog(true);
       
       // Reset form
       form.reset();
     } catch (error) {
       console.error("Error sending contact message:", error);
-      toast({
-        title: "Error sending message",
-        description: "Please try again later or contact us directly by phone.",
-        variant: "destructive",
-      });
+      toast.error("Error sending message. Please try again later or contact us directly by phone.");
     } finally {
       setIsSubmitting(false);
     }
@@ -195,7 +196,7 @@ export default function Contact() {
                   
                   <Button 
                     type="submit" 
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-full"
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-full transition-all duration-300"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? "Sending..." : "Send Message"}
@@ -223,6 +224,26 @@ export default function Contact() {
         </Container>
       </main>
       <Footer />
+      
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Message Sent Successfully!</DialogTitle>
+            <DialogDescription className="text-center">
+              Thank you for reaching out to us. We'll get back to you as soon as possible.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center mt-4">
+            <Button 
+              onClick={() => setShowSuccessDialog(false)}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
