@@ -22,7 +22,7 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
   const { user } = useAuth();
   
   // Ensure we're using the exact price from the database without modification
-  const displayPrice = item.price;
+  const displayPrice = typeof item.price === 'number' ? item.price : parseFloat(item.price);
   
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -34,7 +34,6 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
     
     try {
       await addToCart(item, 1);
-      toast.success(`${item.name} has been added to your cart.`);
     } catch (error) {
       console.error("Error adding to cart:", error);
       toast.error("There was an error adding this item to your cart.");
@@ -49,7 +48,7 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
     >
       <div
         className={cn(
-          "card-hover cursor-pointer group transition-all duration-500",
+          "card-hover cursor-pointer group transition-all duration-300",
           "h-full flex flex-col"
         )}
         onMouseEnter={() => setHovered(true)}
@@ -60,7 +59,7 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
           <AnimatedImage
             src={item.image || ""}
             alt={item.name}
-            className="transition-transform duration-700 ease-out group-hover:scale-105"
+            className="transition-transform duration-500 ease-out group-hover:scale-105"
             aspectRatio="auto"
           />
           

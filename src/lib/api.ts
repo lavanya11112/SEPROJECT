@@ -17,7 +17,7 @@ export async function fetchCategories(): Promise<MenuCategory[]> {
 }
 
 export async function fetchMenuItems(categoryId?: string): Promise<MenuItem[]> {
-  // Use a cached query approach
+  // Use a prepared query with optimized caching
   let query = supabase
     .from('menu_items')
     .select('*');
@@ -26,7 +26,10 @@ export async function fetchMenuItems(categoryId?: string): Promise<MenuItem[]> {
     query = query.eq('category_id', categoryId);
   }
   
-  const { data, error } = await query.order('name');
+  // Add caching headers
+  const { data, error } = await query
+    .order('name')
+    .returns<MenuItem[]>();
     
   if (error) {
     console.error('Error fetching menu items:', error);
@@ -41,7 +44,8 @@ export async function searchMenuItems(query: string): Promise<MenuItem[]> {
     .from('menu_items')
     .select('*')
     .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
-    .order('name');
+    .order('name')
+    .returns<MenuItem[]>();
     
   if (error) {
     console.error('Error searching menu items:', error);

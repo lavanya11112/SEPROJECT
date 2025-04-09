@@ -37,6 +37,11 @@ export default function Cart() {
     clearCart();
   };
   
+  // Calculate tax
+  const tax = totalAmount * 0.05;
+  // No delivery fee
+  const finalTotal = totalAmount + tax;
+  
   return (
     <>
       <Header />
@@ -162,19 +167,15 @@ export default function Cart() {
                         <span>₹{totalAmount.toFixed(0)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Delivery Fee</span>
-                        <span>₹40</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Tax</span>
-                        <span>₹{(totalAmount * 0.05).toFixed(0)}</span>
+                        <span>₹{tax.toFixed(0)}</span>
                       </div>
                     </div>
                     
                     <div className="border-t pt-4 mb-6">
                       <div className="flex justify-between font-medium">
                         <span>Total</span>
-                        <span>₹{(totalAmount + 40 + totalAmount * 0.05).toFixed(0)}</span>
+                        <span>₹{finalTotal.toFixed(0)}</span>
                       </div>
                     </div>
                     

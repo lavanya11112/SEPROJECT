@@ -20,23 +20,23 @@ export default function Menu() {
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   
-  // Fetch categories with staleTime for caching
+  // Fetch categories with long staleTime for aggressive caching
   const { 
     data: categories = [],
     isLoading: categoriesLoading
   } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategories,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 60 * 60 * 1000, // Cache for 60 minutes
   });
   
-  // Create a memoized all categories array to prevent unnecessary re-renders
+  // Create a memoized all categories array 
   const allCategories = useMemo(() => [
     { id: "all", name: "All" },
     ...categories.map(cat => ({ id: cat.id, name: cat.name }))
   ], [categories]);
   
-  // Fetch menu items based on active category with caching
+  // Fetch menu items with aggressive caching
   const { 
     data: menuItems = [],
     isLoading: menuItemsLoading,
@@ -44,7 +44,9 @@ export default function Menu() {
     queryKey: ['menuItems', activeCategory],
     queryFn: () => fetchMenuItems(activeCategory === 'all' ? undefined : activeCategory),
     enabled: !debouncedSearch, // Don't run this query when searching
-    staleTime: 3 * 60 * 1000, // Cache for 3 minutes
+    staleTime: 30 * 60 * 1000, // Cache for 30 minutes
+    cacheTime: 60 * 60 * 1000, // Keep in cache for 60 minutes 
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
   });
   
   // Search query for menu items
@@ -55,19 +57,20 @@ export default function Menu() {
     queryKey: ['searchMenuItems', debouncedSearch],
     queryFn: () => searchMenuItems(debouncedSearch),
     enabled: !!debouncedSearch, // Only run when there's a search query
-    staleTime: 60 * 1000, // Cache for 1 minute
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
   
-  // Debounce search input
+  // Faster debounce for search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-    }, 300);
+    }, 200); // Reduced from 300ms to 200ms
     
     return () => clearTimeout(timer);
   }, [searchQuery]);
   
-  // Update filtered items when data changes - using useEffect for better performance
+  // Update filtered items - optimized to prevent unnecessary re-renders
   useEffect(() => {
     if (debouncedSearch) {
       setFilteredItems(searchResults);
@@ -165,7 +168,7 @@ export default function Menu() {
                 <MenuItemComponent
                   key={item.id}
                   item={item}
-                  delay={index * 50} // Reduced delay for faster rendering
+                  delay={Math.min(index * 20, 200)} // Significantly reduced delay
                 />
               ))}
             </div>

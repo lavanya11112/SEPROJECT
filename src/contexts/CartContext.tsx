@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -25,11 +25,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { toast: uiToast } = useToast();
 
-  // Calculate derived values
-  const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const totalAmount = cartItems.reduce(
-    (total, item) => total + (item.menu_item?.price || 0) * item.quantity, 
-    0
+  // Calculate derived values with useMemo for better performance
+  const totalItems = useMemo(() => 
+    cartItems.reduce((total, item) => total + item.quantity, 0), 
+    [cartItems]
+  );
+  
+  const totalAmount = useMemo(() => 
+    cartItems.reduce(
+      (total, item) => total + (item.menu_item?.price || 0) * item.quantity, 
+      0
+    ),
+    [cartItems]
   );
 
   // Fetch cart items when user changes
@@ -41,7 +48,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
-  const fetchCartItems = async () => {
+  const fetchCartItems = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
@@ -65,9 +72,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const addToCart = async (menuItem: MenuItem, quantity: number) => {
+  const addToCart = useCallback(async (menuItem: MenuItem, quantity: number) => {
     if (!user) {
       toast.error('Please sign in to add items to cart');
       return;
@@ -121,9 +128,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, cartItems]);
 
-  const updateQuantity = async (cartItemId: string, quantity: number) => {
+  const updateQuantity = useCallback(async (cartItemId: string, quantity: number) => {
     if (!user) return;
     
     if (quantity <= 0) {
@@ -153,9 +160,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const removeFromCart = async (cartItemId: string) => {
+  const removeFromCart = useCallback(async (cartItemId: string) => {
     if (!user) return;
     
     setLoading(true);
@@ -177,9 +184,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
@@ -201,21 +208,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  // Use useMemo for the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    cartItems,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    loading,
+    totalItems,
+    totalAmount,
+  }), [
+    cartItems, 
+    addToCart, 
+    removeFromCart, 
+    updateQuantity, 
+    clearCart, 
+    loading, 
+    totalItems, 
+    totalAmount
+  ]);
 
   return (
-    <CartContext.Provider
-      value={{
-        cartItems,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        loading,
-        totalItems,
-        totalAmount,
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );
