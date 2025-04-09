@@ -86,6 +86,7 @@ export default function Menu() {
           .map(adaptMenuItemToDatabase);
         setFilteredItems(parottaItems);
       } else {
+        // Use the database items directly
         setFilteredItems(menuItems);
       }
     }

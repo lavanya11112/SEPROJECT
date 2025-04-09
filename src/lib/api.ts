@@ -32,6 +32,11 @@ export async function fetchMenuItems(categoryId?: string): Promise<MenuItem[]> {
     throw error;
   }
   
+  // Log the first item to verify prices are coming through correctly
+  if (data && data.length > 0) {
+    console.log('Sample menu item:', data[0]);
+  }
+  
   return data || [];
 }
 

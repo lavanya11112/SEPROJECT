@@ -21,7 +21,7 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
   const { addToCart } = useCart();
   const { user } = useAuth();
   
-  // Use the price directly from the menu item without conversion
+  // Ensure we're using the exact price from the database without modification
   const displayPrice = item.price;
   
   const handleAddToCart = async (e: React.MouseEvent) => {
