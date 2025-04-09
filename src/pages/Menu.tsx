@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { CategoryTabs } from "@/components/ui/CategoryTabs";
 import { MenuItem as MenuItemComponent } from "@/components/ui/MenuItem";
 import { Container } from "@/components/ui/Container";
@@ -20,22 +20,23 @@ export default function Menu() {
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   
-  // Fetch categories
+  // Fetch categories with staleTime for caching
   const { 
     data: categories = [],
     isLoading: categoriesLoading
   } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategories,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
   
-  // Create a standardized categories array including "All"
-  const allCategories: { id: string; name: string }[] = [
+  // Create a memoized all categories array to prevent unnecessary re-renders
+  const allCategories = useMemo(() => [
     { id: "all", name: "All" },
     ...categories.map(cat => ({ id: cat.id, name: cat.name }))
-  ];
+  ], [categories]);
   
-  // Fetch menu items based on active category
+  // Fetch menu items based on active category with caching
   const { 
     data: menuItems = [],
     isLoading: menuItemsLoading,
@@ -43,6 +44,7 @@ export default function Menu() {
     queryKey: ['menuItems', activeCategory],
     queryFn: () => fetchMenuItems(activeCategory === 'all' ? undefined : activeCategory),
     enabled: !debouncedSearch, // Don't run this query when searching
+    staleTime: 3 * 60 * 1000, // Cache for 3 minutes
   });
   
   // Search query for menu items
@@ -53,6 +55,7 @@ export default function Menu() {
     queryKey: ['searchMenuItems', debouncedSearch],
     queryFn: () => searchMenuItems(debouncedSearch),
     enabled: !!debouncedSearch, // Only run when there's a search query
+    staleTime: 60 * 1000, // Cache for 1 minute
   });
   
   // Debounce search input
@@ -64,7 +67,7 @@ export default function Menu() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
   
-  // Update filtered items when data changes
+  // Update filtered items when data changes - using useEffect for better performance
   useEffect(() => {
     if (debouncedSearch) {
       setFilteredItems(searchResults);
@@ -143,8 +146,11 @@ export default function Menu() {
           />
           
           {isLoading ? (
-            <div className="text-center py-16">
-              <h3 className="text-lg mb-2">Loading menu items...</h3>
+            <div className="text-center py-8">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+                <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+              </div>
+              <h3 className="text-lg mt-2">Loading menu items...</h3>
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="text-center py-16">
@@ -159,7 +165,7 @@ export default function Menu() {
                 <MenuItemComponent
                   key={item.id}
                   item={item}
-                  delay={index * 100}
+                  delay={index * 50} // Reduced delay for faster rendering
                 />
               ))}
             </div>

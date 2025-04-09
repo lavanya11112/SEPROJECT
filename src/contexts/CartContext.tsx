@@ -52,7 +52,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           *,
           menu_item:menu_items(*)
         `)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .limit(100); // Limit results for better performance
 
       if (error) throw error;
       

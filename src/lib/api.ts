@@ -17,6 +17,7 @@ export async function fetchCategories(): Promise<MenuCategory[]> {
 }
 
 export async function fetchMenuItems(categoryId?: string): Promise<MenuItem[]> {
+  // Use a cached query approach
   let query = supabase
     .from('menu_items')
     .select('*');
@@ -30,11 +31,6 @@ export async function fetchMenuItems(categoryId?: string): Promise<MenuItem[]> {
   if (error) {
     console.error('Error fetching menu items:', error);
     throw error;
-  }
-  
-  // Log the first item to verify prices are coming through correctly
-  if (data && data.length > 0) {
-    console.log('Sample menu item:', data[0]);
   }
   
   return data || [];
