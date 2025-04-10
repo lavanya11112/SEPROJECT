@@ -98,8 +98,8 @@ export default function Contact() {
                 <div>
                   <h3 className="font-medium">Our Location</h3>
                   <p className="text-muted-foreground">
-                    123 Restaurant Street<br />
-                    New York, NY 10001
+                    Gandhi Nagar,Main Road<br />
+                    Amalapuram,533201
                   </p>
                 </div>
               </div>
