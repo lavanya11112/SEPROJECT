@@ -33,7 +33,7 @@ export default function About() {
               </div>
               <div className="rounded-xl overflow-hidden shadow-lg">
                 <AnimatedImage 
-                  src="/lovable-uploads/2380be38-945d-4e2e-99d1-5098b1704664.png" 
+                  src="/lovable-uploads/about.jpg" 
                   alt="Traditional Indian cooking" 
                   className="w-full h-full"
                   aspectRatio="wide"
