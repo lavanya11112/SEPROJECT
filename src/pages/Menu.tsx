@@ -45,7 +45,7 @@ export default function Menu() {
     queryFn: () => fetchMenuItems(activeCategory === 'all' ? undefined : activeCategory),
     enabled: !debouncedSearch, // Don't run this query when searching
     staleTime: 30 * 60 * 1000, // Cache for 30 minutes
-    cacheTime: 60 * 60 * 1000, // Keep in cache for 60 minutes 
+    gcTime: 60 * 60 * 1000, // Keep in cache for 60 minutes (replaces cacheTime)
     refetchOnWindowFocus: false, // Don't refetch when window regains focus
   });
   
@@ -58,7 +58,7 @@ export default function Menu() {
     queryFn: () => searchMenuItems(debouncedSearch),
     enabled: !!debouncedSearch, // Only run when there's a search query
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes (replaces cacheTime)
   });
   
   // Faster debounce for search input
