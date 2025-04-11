@@ -28,27 +28,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state change event:", event);
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
-
+        
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          // Use setTimeout to prevent potential deadlocks with Supabase client
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+          }, 0);
         } else {
           setProfile(null);
         }
       }
     );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session ? "Logged in" : "Not logged in");
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
+      setLoading(false);
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -76,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -99,11 +108,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -115,6 +127,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Welcome back!",
         description: "You have successfully signed in",
       });
+      
+      // After successful sign-in, navigate to home page
+      navigate('/');
     } catch (error: any) {
       toast({
         title: "Error signing in",
@@ -122,15 +137,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signInWithSocial = async (provider: 'google' | 'twitter' | 'facebook') => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}`,
         },
       });
 
@@ -142,6 +160,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -157,7 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
       
       // Navigate to home page after logout
-      navigate('/');
+      navigate('/', { replace: true });
       
       toast({
         title: "Signed out",

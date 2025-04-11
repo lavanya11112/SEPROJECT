@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, User, ShoppingBag, LogOut } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
@@ -27,11 +27,12 @@ const navItems: NavItem[] = [
 ];
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -61,7 +62,23 @@ export function Header() {
   const handleCloseAuthModal = () => setIsAuthModalOpen(false);
   
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+      // Note: Navigation is handled in signOut method now
+      if (isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+        document.body.style.overflow = "";
+      }
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+  
+  const handleAuthClick = () => {
+    if (location.pathname === '/auth') {
+      return; // Already on auth page
+    }
+    navigate('/auth');
     if (isMobileMenuOpen) {
       setIsMobileMenuOpen(false);
       document.body.style.overflow = "";
@@ -109,7 +126,9 @@ export function Header() {
           </nav>
           
           <div className="hidden md:flex items-center space-x-4">
-            {user ? (
+            {loading ? (
+              <div className="h-9 w-24 bg-muted animate-pulse rounded-full"></div>
+            ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="rounded-full">
@@ -131,7 +150,7 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" size="sm" className="rounded-full" onClick={handleOpenAuthModal}>
+              <Button variant="ghost" size="sm" className="rounded-full" onClick={handleAuthClick}>
                 <User className="h-5 w-5 mr-2" />
                 Sign In
               </Button>
@@ -184,7 +203,9 @@ export function Header() {
           </nav>
           
           <div className="border-t border-border mt-6 pt-6 space-y-4">
-            {user ? (
+            {loading ? (
+              <div className="h-12 bg-muted animate-pulse rounded-md"></div>
+            ) : user ? (
               <>
                 <Button variant="outline" className="w-full justify-start" size="lg" asChild>
                   <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}>
@@ -202,10 +223,7 @@ export function Header() {
                 variant="outline" 
                 className="w-full justify-start" 
                 size="lg" 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  handleOpenAuthModal();
-                }}
+                onClick={handleAuthClick}
               >
                 <User className="h-5 w-5 mr-3" />
                 Sign In

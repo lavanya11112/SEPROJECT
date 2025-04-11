@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from "./LoginForm";
@@ -18,6 +19,12 @@ export function AuthModal({
   defaultTab = "login",
 }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<string>(defaultTab);
+  const navigate = useNavigate();
+  
+  const handleSuccess = () => {
+    onClose();
+    navigate('/', { replace: true });
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -58,10 +65,10 @@ export function AuthModal({
           
           <div className="p-6">
             <TabsContent value="login" className="pt-2 pb-0 px-0 mt-0">
-              <LoginForm onSuccess={onClose} />
+              <LoginForm onSuccess={handleSuccess} />
             </TabsContent>
             <TabsContent value="signup" className="pt-2 pb-0 px-0 mt-0">
-              <SignupForm onSuccess={onClose} />
+              <SignupForm onSuccess={handleSuccess} />
             </TabsContent>
           </div>
         </Tabs>

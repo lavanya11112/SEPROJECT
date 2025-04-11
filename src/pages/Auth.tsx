@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Container } from "@/components/ui/Container";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -12,10 +12,16 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function Auth() {
   const [activeTab, setActiveTab] = useState<string>("login");
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  
+  // Handle successful authentication
+  const handleAuthSuccess = () => {
+    navigate('/', { replace: true });
+  };
   
   // Redirect if already logged in
-  if (user) {
+  if (user && !loading) {
     return <Navigate to="/" replace />;
   }
   
@@ -48,10 +54,10 @@ export default function Auth() {
               
               <div className="mt-8">
                 <TabsContent value="login" className="mt-0">
-                  <LoginForm />
+                  <LoginForm onSuccess={handleAuthSuccess} />
                 </TabsContent>
                 <TabsContent value="signup" className="mt-0">
-                  <SignupForm />
+                  <SignupForm onSuccess={handleAuthSuccess} />
                 </TabsContent>
               </div>
             </Tabs>
