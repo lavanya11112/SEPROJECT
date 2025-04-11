@@ -210,17 +210,18 @@ export default function Contact() {
           <MotionDiv animation="fade-in" className="mb-20">
   <div className="bg-gray-200 h-96 rounded-xl w-full overflow-hidden">
     <iframe
-      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3822.1864140737787!2d82.00542221486678!3d16.586528888540446!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a37f44ad0a2f3d1%3A0xbfb89c3773484be9!2sGandhinagar%2C%20Amalapuram%2C%20Andhra%20Pradesh%20533301!5e0!3m2!1sen!2sin!4v1712823167890!5m2!1sen!2sin"
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4571.191585374237!2d82.0106830294407!3d16.578159264478487!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a37ef8e97e7283f%3A0x610cf4c71e06bfd6!2sGandhi%20Nagar%2C%20Amalapuram%2C%20Andhra%20Pradesh%20533201!5e0!3m2!1sen!2sin!4v1744380301267!5m2!1sen!2sin"
       width="100%"
       height="100%"
       style={{ border: 0 }}
       allowFullScreen
       loading="lazy"
       referrerPolicy="no-referrer-when-downgrade"
-      title="Restaurant Location"
+      title="Gandhi Nagar Location"
     ></iframe>
   </div>
 </MotionDiv>
+
 
         </Container>
       </main>
