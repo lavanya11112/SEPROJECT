@@ -29,6 +29,8 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { RatingDialog } from "@/components/dialogs/RatingDialog";
+import { EditProfileDialog } from "@/components/dialogs/EditProfileDialog";
+import { EditAddressDialog } from "@/components/dialogs/EditAddressDialog";
 
 const menuOptions = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -52,6 +54,8 @@ export default function Profile() {
   ]);
   const navigate = useNavigate();
   const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [showEditProfileDialog, setShowEditProfileDialog] = useState(false);
+  const [showEditAddressDialog, setShowEditAddressDialog] = useState(false);
 
   if (!user) {
     return <Navigate to="/auth" replace />;
@@ -97,11 +101,15 @@ export default function Profile() {
   };
 
   const handleEditProfile = () => {
-    toast.info("Edit profile feature coming soon!");
+    setShowEditProfileDialog(true);
   };
 
   const handleEditAddress = () => {
-    toast.info("Edit address feature coming soon!");
+    setShowEditAddressDialog(true);
+  };
+
+  const handleProfileUpdate = async () => {
+    await supabase.auth.refreshSession();
   };
 
   const handleViewAllOrders = () => {
@@ -475,6 +483,18 @@ export default function Profile() {
           </div>
         </Container>
       </main>
+      <EditProfileDialog
+        open={showEditProfileDialog}
+        onOpenChange={setShowEditProfileDialog}
+        currentProfile={profile}
+        onProfileUpdate={handleProfileUpdate}
+      />
+      <EditAddressDialog
+        open={showEditAddressDialog}
+        onOpenChange={setShowEditAddressDialog}
+        currentAddress={profile?.address}
+        onProfileUpdate={handleProfileUpdate}
+      />
       <RatingDialog 
         open={showRatingDialog} 
         onOpenChange={setShowRatingDialog} 
