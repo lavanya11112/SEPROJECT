@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
@@ -21,10 +20,17 @@ export default function Index() {
   const { addToCart } = useCart();
   const { user } = useAuth();
   
-  // Get 4 popular items for showcase
+  // Get 4 popular items for showcase and ensure they have proper UUIDs
   const popularItems = menuItems
     .filter((item) => item.popular)
-    .slice(0, 4);
+    .slice(0, 4)
+    .map(item => ({
+      ...item,
+      // Ensure each popular item has a unique UUID
+      id: uuidv4(),
+      // Converting to rupees (approx USD to INR)
+      price: item.price * 82
+    }));
   
   const handleViewMenu = () => {
     navigate("/menu");
@@ -42,10 +48,10 @@ export default function Index() {
       // Convert menu-data MenuItem to database MenuItem with a proper UUID
       const databaseItem = adaptMenuItemToDatabase(item);
       
-      // Ensure the item has a valid UUID
+      // Ensure the item has a valid UUID - this should already be set above
+      // but adding a safety check just in case
       if (!databaseItem.id || typeof databaseItem.id !== 'string' || 
           !databaseItem.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-        // If no valid UUID, generate one (this ensures we're sending valid UUIDs to the database)
         databaseItem.id = uuidv4();
       }
       
@@ -158,7 +164,7 @@ export default function Index() {
               {popularItems.map((item, index) => (
                 <PopularItemCard
                   key={item.id}
-                  item={{...item, price: item.price * 82}} // Converting to rupees (approx USD to INR)
+                  item={item}
                   delay={index * 100}
                   onAddToCart={handleAddToCart}
                 />

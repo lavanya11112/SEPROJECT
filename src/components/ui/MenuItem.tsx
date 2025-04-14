@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { AnimatedImage } from "./AnimatedImage";
 import { MotionDiv } from "./MotionDiv";
@@ -8,6 +7,7 @@ import { MenuItem as MenuItemType } from "@/types/database";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { IndianRupee } from "lucide-react";
+import { v4 as uuidv4 } from 'uuid';
 
 interface MenuItemProps {
   item: MenuItemType;
@@ -32,15 +32,19 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
       return;
     }
     
-    // Make sure the item has a valid UUID before adding to cart
-    if (!item.id || typeof item.id !== 'string' || !item.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-      console.error("Invalid item ID format:", item.id);
-      toast.error("This item cannot be added to cart");
-      return;
-    }
-    
     try {
-      await addToCart(item, 1);
+      // Create a copy of the item to avoid modifying the original
+      const itemToAdd = { ...item };
+      
+      // Check if the item ID is a valid UUID, if not generate one
+      if (!itemToAdd.id || typeof itemToAdd.id !== 'string' || 
+          !itemToAdd.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        console.log("Converting non-UUID item ID to UUID:", itemToAdd.id);
+        itemToAdd.id = uuidv4();
+      }
+      
+      await addToCart(itemToAdd, 1);
+      toast.success(`${item.name} added to your cart`);
     } catch (error) {
       console.error("Error adding to cart:", error);
       toast.error("There was an error adding this item to your cart.");
