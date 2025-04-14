@@ -32,6 +32,13 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
       return;
     }
     
+    // Make sure the item has a valid UUID before adding to cart
+    if (!item.id || typeof item.id !== 'string' || !item.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      console.error("Invalid item ID format:", item.id);
+      toast.error("This item cannot be added to cart");
+      return;
+    }
+    
     try {
       await addToCart(item, 1);
     } catch (error) {

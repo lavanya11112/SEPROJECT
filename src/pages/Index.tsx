@@ -12,7 +12,8 @@ import { FoodCategory } from "@/components/ui/FoodCategory";
 import { foodCategories } from "@/lib/food-categories";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { v4 as uuidv4 } from 'uuid';
 import { adaptMenuItemToDatabase } from "@/lib/menu-adapters";
 
 export default function Index() {
@@ -33,20 +34,26 @@ export default function Index() {
     e.stopPropagation();
     
     if (!user) {
-      toast({
-        title: "Please sign in",
-        description: "You need to be signed in to add items to cart",
-        variant: "destructive",
-      });
+      toast.error("Please sign in to add items to cart");
       return;
     }
     
     try {
-      // Convert menu-data MenuItem to database MenuItem
+      // Convert menu-data MenuItem to database MenuItem with a proper UUID
       const databaseItem = adaptMenuItemToDatabase(item);
+      
+      // Ensure the item has a valid UUID
+      if (!databaseItem.id || typeof databaseItem.id !== 'string' || 
+          !databaseItem.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        // If no valid UUID, generate one (this ensures we're sending valid UUIDs to the database)
+        databaseItem.id = uuidv4();
+      }
+      
       await addToCart(databaseItem, 1);
+      toast.success(`${item.name} added to your cart`);
     } catch (error) {
       console.error("Error adding to cart:", error);
+      toast.error("There was an error adding this item to your cart");
     }
   };
   
