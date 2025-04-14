@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -29,8 +28,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { RatingDialog } from "@/components/dialogs/RatingDialog";
 
-// Define the menu options for the sidebar
 const menuOptions = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'orders', label: 'Order History', icon: ShoppingBag },
@@ -52,14 +51,13 @@ export default function Profile() {
     { code: 'FREESHIP', discount: 'Free Delivery', expiryDate: '2023-10-15' },
   ]);
   const navigate = useNavigate();
-  
-  // Redirect if not logged in
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
+
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
   useEffect(() => {
-    // Fetch recent orders for the user
     const fetchOrders = async () => {
       try {
         setLoading(true);
@@ -93,7 +91,7 @@ export default function Profile() {
       if (optionId === 'refer') {
         toast.info('Share this code with your friends: FRIEND25');
       } else if (optionId === 'rate') {
-        toast.info('Thank you for rating us!');
+        setShowRatingDialog(true);
       }
     }
   };
@@ -110,7 +108,6 @@ export default function Profile() {
     setActiveOption('orders');
   };
   
-  // Get user initials for avatar fallback
   const getUserInitials = () => {
     if (profile?.full_name) {
       const names = profile.full_name.split(' ');
@@ -122,7 +119,6 @@ export default function Profile() {
     return user.email?.substring(0, 2).toUpperCase() || 'U';
   };
   
-  // Get status badge styling
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Processing':
@@ -141,14 +137,12 @@ export default function Profile() {
     }
   };
   
-  // Format date
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
-  // Render content based on active option
   const renderContent = () => {
     switch(activeOption) {
       case 'dashboard':
@@ -166,12 +160,9 @@ export default function Profile() {
     }
   };
 
-  // Dashboard view
   const renderDashboard = () => (
     <>
-      {/* Profile and Billing Address Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Profile Section */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xl">Profile</CardTitle>
@@ -198,7 +189,6 @@ export default function Profile() {
           </CardFooter>
         </Card>
         
-        {/* Billing Address Section */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xl">Billing Address</CardTitle>
@@ -241,7 +231,6 @@ export default function Profile() {
         </Card>
       </div>
       
-      {/* Recent Order History Section */}
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <div>
@@ -293,7 +282,6 @@ export default function Profile() {
     </>
   );
 
-  // Orders view
   const renderOrders = () => (
     <Card>
       <CardHeader>
@@ -339,7 +327,6 @@ export default function Profile() {
     </Card>
   );
 
-  // Promo codes view
   const renderPromoCodes = () => (
     <Card>
       <CardHeader>
@@ -372,7 +359,6 @@ export default function Profile() {
     </Card>
   );
 
-  // Transactions view
   const renderTransactions = () => (
     <Card>
       <CardHeader>
@@ -387,7 +373,6 @@ export default function Profile() {
     </Card>
   );
 
-  // Referral view
   const renderReferral = () => (
     <Card>
       <CardHeader>
@@ -451,7 +436,7 @@ export default function Profile() {
       </CardContent>
     </Card>
   );
-  
+
   return (
     <>
       <Header />
@@ -461,7 +446,6 @@ export default function Profile() {
             <h1 className="text-3xl font-medium mb-8">My Account</h1>
             
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Navigation Panel (Left Side) */}
               <Card className="lg:col-span-3">
                 <CardContent className="p-4">
                   <nav className="space-y-1">
@@ -491,6 +475,10 @@ export default function Profile() {
           </div>
         </Container>
       </main>
+      <RatingDialog 
+        open={showRatingDialog} 
+        onOpenChange={setShowRatingDialog} 
+      />
       <Footer />
     </>
   );
