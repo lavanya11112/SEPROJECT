@@ -493,7 +493,7 @@ export default function Profile() {
         open={showEditAddressDialog}
         onOpenChange={setShowEditAddressDialog}
         currentAddress={profile?.address}
-        onProfileUpdate={handleProfileUpdate}
+        onAddressUpdate={handleProfileUpdate}
       />
       <RatingDialog 
         open={showRatingDialog} 
