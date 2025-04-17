@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
