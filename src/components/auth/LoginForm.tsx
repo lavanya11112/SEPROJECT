@@ -54,12 +54,6 @@ export function LoginForm({ onSuccess }: LoginFormProps = {}) {
       // No need to call onSuccess here as the redirect will happen automatically
     } catch (error) {
       console.error(`${provider} login error:`, error);
-      toast({
-        title: "Login Error",
-        description: `Could not sign in with ${provider}. Please try again.`,
-        variant: "destructive",
-      });
-    } finally {
       setIsLoading(false);
     }
   };

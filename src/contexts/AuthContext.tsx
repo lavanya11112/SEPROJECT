@@ -145,23 +145,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithSocial = async (provider: 'google' | 'twitter' | 'facebook') => {
     try {
       setLoading(true);
+      
+      // Get the current URL origin for the redirect
+      const redirectTo = window.location.origin;
+      
+      // Use the correct sign-in method with a proper redirect URL
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}`,
+          redirectTo,
         },
       });
 
       if (error) throw error;
+      
+      // We don't need to show a toast here as the page will be redirected
     } catch (error: any) {
       toast({
         title: `Error signing in with ${provider}`,
         description: error.message,
         variant: "destructive",
       });
-      throw error;
-    } finally {
       setLoading(false);
+      throw error;
     }
   };
 
