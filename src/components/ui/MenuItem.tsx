@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { AnimatedImage } from "./AnimatedImage";
 import { MotionDiv } from "./MotionDiv";
@@ -22,7 +21,6 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
   const { addToCart } = useCart();
   const { user } = useAuth();
   
-  // Ensure we're using the exact price from the database without modification
   const displayPrice = typeof item.price === 'number' ? item.price : parseFloat(item.price);
   
   const handleAddToCart = async (e: React.MouseEvent) => {
@@ -34,10 +32,8 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
     }
     
     try {
-      // Create a copy of the item to avoid modifying the original
       const itemToAdd = { ...item };
       
-      // Check if the item ID is a valid UUID, if not generate one
       if (!itemToAdd.id || typeof itemToAdd.id !== 'string' || 
           !itemToAdd.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
         console.log("Converting non-UUID item ID to UUID:", itemToAdd.id);
@@ -75,7 +71,6 @@ export function MenuItem({ item, delay = 0, className, onClick }: MenuItemProps)
             aspectRatio="auto"
           />
           
-          {/* Tags */}
           <div className="absolute top-3 left-3 flex flex-wrap gap-2">
             {item.vegetarian && (
               <span className="tag bg-green-100 text-green-800 border border-green-200">

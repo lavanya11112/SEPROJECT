@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
@@ -21,15 +20,12 @@ export default function Index() {
   const { addToCart } = useCart();
   const { user } = useAuth();
   
-  // Get 4 popular items for showcase and ensure they have proper UUIDs
   const popularItems = menuItems
     .filter((item) => item.popular)
     .slice(0, 4)
     .map(item => ({
       ...item,
-      // Ensure each popular item has a unique UUID
       id: uuidv4(),
-      // Converting to rupees (approx USD to INR)
       price: item.price * 82
     }));
   
@@ -46,11 +42,8 @@ export default function Index() {
     }
     
     try {
-      // Convert menu-data MenuItem to database MenuItem with a proper UUID
       const databaseItem = adaptMenuItemToDatabase(item);
       
-      // Ensure the item has a valid UUID - this should already be set above
-      // but adding a safety check just in case
       if (!databaseItem.id || typeof databaseItem.id !== 'string' || 
           !databaseItem.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
         databaseItem.id = uuidv4();
@@ -68,7 +61,6 @@ export default function Index() {
     <>
       <Header />
       <main>
-        {/* Hero Section with Background Image */}
         <section 
           className="relative pt-20 min-h-[90vh] flex items-center bg-cover bg-center" 
           style={{ 
@@ -105,7 +97,6 @@ export default function Index() {
           </Container>
         </section>
         
-        {/* Food Categories Section */}
         <section className="py-12 bg-amber-50">
           <Container>
             <div className="text-center mb-8">
@@ -125,14 +116,12 @@ export default function Index() {
                 ))}
               </div>
               
-              {/* Fade effect on sides */}
               <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-amber-50 to-transparent pointer-events-none"></div>
               <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-amber-50 to-transparent pointer-events-none"></div>
             </div>
           </Container>
         </section>
         
-        {/* Popular Items Section */}
         <section className="py-24">
           <Container>
             <div className="flex flex-wrap items-center justify-between mb-12">
@@ -174,7 +163,6 @@ export default function Index() {
           </Container>
         </section>
         
-        {/* CTA Section */}
         <section className="py-24 bg-amber-50 relative overflow-hidden">
           <Container className="relative z-10">
             <div className="max-w-3xl mx-auto text-center">
