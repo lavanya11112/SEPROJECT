@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,7 +27,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state change event:", event);
@@ -36,7 +34,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Use setTimeout to prevent potential deadlocks with Supabase client
           setTimeout(() => {
             fetchProfile(session.user.id);
           }, 0);
@@ -46,7 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session check:", session ? "Logged in" : "Not logged in");
       setSession(session);
@@ -128,7 +124,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "You have successfully signed in",
       });
       
-      // After successful sign-in, navigate to home page
       navigate('/');
     } catch (error: any) {
       toast({
@@ -145,29 +140,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithSocial = async (provider: 'google' | 'twitter' | 'facebook') => {
     try {
       setLoading(true);
-      
-      // Get the current URL origin for the redirect
-      const redirectTo = window.location.origin;
-      
-      // Use the correct sign-in method with a proper redirect URL
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data: { session }, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo,
+          redirectTo: window.location.origin,
+          queryParams: provider === 'google' ? {
+            access_type: 'offline',
+            prompt: 'select_account',
+          } : undefined,
         },
       });
 
       if (error) throw error;
+      if (session) {
+        toast.success(`Successfully signed in with ${provider}`);
+      }
       
-      // We don't need to show a toast here as the page will be redirected
     } catch (error: any) {
+      console.error(`${provider} sign-in error:`, error);
       toast({
         title: `Error signing in with ${provider}`,
         description: error.message,
         variant: "destructive",
       });
-      setLoading(false);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -177,12 +175,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      // Clear local state
       setSession(null);
       setUser(null);
       setProfile(null);
       
-      // Navigate to home page after logout
       navigate('/', { replace: true });
       
       toast({
