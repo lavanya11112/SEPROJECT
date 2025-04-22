@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithSocial = async (provider: 'google' | 'twitter' | 'facebook') => {
     try {
       setLoading(true);
-      const { data: { session }, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: window.location.origin,
@@ -152,9 +152,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) throw error;
-      if (session) {
-        toast.success(`Successfully signed in with ${provider}`);
-      }
+      
+      toast({
+        title: `Continuing with ${provider}`,
+        description: `You'll be redirected to ${provider} to complete sign in`,
+      });
       
     } catch (error: any) {
       console.error(`${provider} sign-in error:`, error);
