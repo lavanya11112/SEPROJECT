@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Trash2, Minus, Plus, ShoppingBag } from "lucide-react";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import { cn } from "@/lib/utils";
+import { PaymentButton } from "@/components/payment/PaymentButton";
 
 export default function Cart() {
   const { user } = useAuth();
@@ -179,7 +180,13 @@ export default function Cart() {
                       </div>
                     </div>
                     
-                    <Button className="w-full">Proceed to Checkout</Button>
+                    <PaymentButton 
+                      amount={finalTotal} 
+                      className="w-full"
+                      maxRetries={3}
+                    >
+                      Proceed to Checkout
+                    </PaymentButton>
                   </div>
                 </div>
               </div>
