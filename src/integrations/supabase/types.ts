@@ -241,6 +241,48 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string
+          id: string
+          metadata: Json | null
+          payment_type: Database["public"]["Enums"]["payment_type"]
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          payment_type?: Database["public"]["Enums"]["payment_type"]
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          payment_type?: Database["public"]["Enums"]["payment_type"]
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -268,6 +310,80 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          interval: string
+          interval_count: number
+          name: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          interval?: string
+          interval_count?: number
+          name: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          interval?: string
+          interval_count?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          canceled_at: string | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_id: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          canceled_at?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          canceled_at?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -279,7 +395,13 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      payment_status:
+        | "pending"
+        | "processing"
+        | "completed"
+        | "failed"
+        | "refunded"
+      payment_type: "one_time" | "recurring"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -394,6 +516,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      payment_status: [
+        "pending",
+        "processing",
+        "completed",
+        "failed",
+        "refunded",
+      ],
+      payment_type: ["one_time", "recurring"],
+    },
   },
 } as const
