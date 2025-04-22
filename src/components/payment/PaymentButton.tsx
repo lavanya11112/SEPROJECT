@@ -11,6 +11,7 @@ interface PaymentButtonProps {
   type?: 'one_time' | 'recurring';
   className?: string;
   children?: React.ReactNode;
+  maxRetries?: number;
 }
 
 declare global {
@@ -24,7 +25,8 @@ export function PaymentButton({
   planId, 
   type = 'one_time',
   className,
-  children 
+  children,
+  maxRetries = 3
 }: PaymentButtonProps) {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -43,21 +45,19 @@ export function PaymentButton({
     setLoading(true);
 
     try {
-      // Create order
       const response = await supabase.functions.invoke('handle-razorpay', {
         body: {
           amount,
           type,
           planId,
           userId: user.id,
+          maxRetries
         },
       });
 
       if (response.error) throw response.error;
-
       const { orderId } = response.data;
 
-      // Initialize Razorpay
       const options = {
         key: 'rzp_test_BHwVxgnFNSfosE',
         amount: amount * 100,

@@ -1,5 +1,8 @@
 
-project_id = "ptpnbtsdqwiqlndytrnh"
+[functions]
+[functions.handle-razorpay]
+verify_jwt = true
 
-[functions.send-contact-email]
+[functions.handle-razorpay-webhook]
 verify_jwt = false
+

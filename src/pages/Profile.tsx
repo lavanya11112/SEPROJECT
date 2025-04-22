@@ -47,6 +47,8 @@ export default function Profile() {
   const [activeOption, setActiveOption] = useState('dashboard');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [payments, setPayments] = useState([]);
+  const [maxRetries, setMaxRetries] = useState(3);
   const [promoCodes, setPromoCodes] = useState([
     { code: 'WELCOME10', discount: '10%', expiryDate: '2023-12-31' },
     { code: 'SPICY25', discount: '25%', expiryDate: '2023-09-30' },
@@ -81,8 +83,28 @@ export default function Profile() {
       }
     };
 
+    const fetchPayments = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('payments')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setPayments(data || []);
+      } catch (error) {
+        console.error('Error fetching payments:', error);
+        toast.error('Could not load your payments');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (user) {
       fetchOrders();
+      fetchPayments();
     }
   }, [user]);
   
@@ -374,9 +396,45 @@ export default function Profile() {
         <CardDescription>All your financial transactions</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="text-center py-6">
-          Your transaction history will appear here.
-        </div>
+        {loading ? (
+          <div className="text-center py-6">Loading your transactions...</div>
+        ) : payments?.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Retries</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {payments.map((payment) => (
+                <TableRow key={payment.id}>
+                  <TableCell>{formatDate(payment.created_at)}</TableCell>
+                  <TableCell>₹{payment.amount.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {payment.payment_type === 'recurring' ? 'Subscription' : 'One-time'}
+                  </TableCell>
+                  <TableCell>
+                    {getStatusBadge(payment.status)}
+                  </TableCell>
+                  <TableCell>
+                    {payment.metadata?.retry_count || 0}/{maxRetries}
+                    {payment.metadata?.retry_after && (
+                      <p className="text-xs text-muted-foreground">
+                        Next retry: {formatDate(payment.metadata.retry_after)}
+                      </p>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="text-center py-6">No transactions found.</div>
+        )}
       </CardContent>
     </Card>
   );
