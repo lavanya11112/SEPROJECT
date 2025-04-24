@@ -12,6 +12,7 @@ interface PaymentButtonProps {
   className?: string;
   children?: React.ReactNode;
   maxRetries?: number;
+  onSuccess?: () => void;  // Added this prop
 }
 
 declare global {
@@ -26,7 +27,8 @@ export function PaymentButton({
   type = 'one_time',
   className,
   children,
-  maxRetries = 3
+  maxRetries = 3,
+  onSuccess  // Using the new prop
 }: PaymentButtonProps) {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -70,6 +72,11 @@ export function PaymentButton({
             title: "Payment successful",
             description: "Your payment has been processed successfully",
           });
+          
+          // Call the onSuccess callback if provided
+          if (onSuccess) {
+            onSuccess();
+          }
         },
         prefill: {
           email: user.email,
