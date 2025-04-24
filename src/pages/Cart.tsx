@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { Container } from "@/components/ui/Container";
@@ -13,11 +14,14 @@ import { cn } from "@/lib/utils";
 import { OrderSuccessModal } from "@/components/modals/OrderSuccessModal";
 import { OrderBill } from "@/components/bill/OrderBill";
 import { CartItem } from "@/types/database";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function Cart() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showBill, setShowBill] = useState(false);
   const [orderItems, setOrderItems] = useState<CartItem[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useAuth();
   const { cartItems, totalItems, totalAmount, removeFromCart, updateQuantity, clearCart, loading } = useCart();
 
@@ -42,11 +46,72 @@ export default function Cart() {
     clearCart();
   };
 
-  const handleOrderSuccess = () => {
-    setOrderItems([...cartItems]);
-    setShowSuccessModal(true);
-    setShowBill(true);
-    clearCart();
+  const handleOrderSuccess = async () => {
+    if (cartItems.length === 0) {
+      toast.error("Your cart is empty.");
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    try {
+      // Calculate total amount and tax
+      const tax = totalAmount * 0.05;
+      const finalTotal = totalAmount + tax;
+      
+      // 1. Create order in the database
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          total_amount: finalTotal,
+          status: 'pending',
+          delivery_address: user.user_metadata?.address || null,
+          contact_number: user.user_metadata?.phone_number || null
+        })
+        .select()
+        .single();
+      
+      if (orderError) {
+        throw orderError;
+      }
+      
+      const orderId = orderData.id;
+      
+      // 2. Create order items
+      const orderItemsToInsert = cartItems.map(item => ({
+        order_id: orderId,
+        menu_item_id: item.menu_item_id,
+        quantity: item.quantity,
+        price: item.menu_item?.price || 0
+      }));
+      
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItemsToInsert);
+      
+      if (itemsError) {
+        throw itemsError;
+      }
+      
+      // Save order items for the bill
+      setOrderItems([...cartItems]);
+      
+      // Show success modal and bill
+      setShowSuccessModal(true);
+      setShowBill(true);
+      
+      // Clear the cart
+      await clearCart();
+      
+      toast.success("Order placed successfully!");
+      
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast.error("Failed to place order. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -203,8 +268,9 @@ export default function Cart() {
                         <Button 
                           className="w-full"
                           onClick={handleOrderSuccess}
+                          disabled={isProcessing || cartItems.length === 0}
                         >
-                          Place Order
+                          {isProcessing ? "Processing..." : "Place Order"}
                         </Button>
                       </div>
                     </div>
