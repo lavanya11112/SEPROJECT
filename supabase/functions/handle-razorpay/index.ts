@@ -1,17 +1,12 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { Razorpay } from 'npm:razorpay'
+import Razorpay from 'npm:razorpay@2.9.2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
-
-const razorpay = new Razorpay({
-  key_id: Deno.env.get('RAZORPAY_KEY_ID')!,
-  key_secret: Deno.env.get('RAZORPAY_KEY_SECRET')!,
-})
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,7 +14,13 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, type, planId, userId } = await req.json()
+    const { amount, type, planId, userId, maxRetries } = await req.json()
+
+    // Initialize Razorpay with environment variables
+    const razorpay = new Razorpay({
+      key_id: Deno.env.get('RAZORPAY_KEY_ID') || 'rzp_test_BHwVxgnFNSfosE', // Fallback to test key
+      key_secret: Deno.env.get('RAZORPAY_KEY_SECRET') || 'secret_placeholder', // Fallback - replace with actual test secret in production
+    })
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -38,6 +39,8 @@ serve(async (req) => {
       },
     })
 
+    console.log("Razorpay order created:", order.id)
+
     // Create payment record
     const { error: paymentError } = await supabase
       .from('payments')
@@ -49,7 +52,12 @@ serve(async (req) => {
         metadata: { planId },
       })
 
-    if (paymentError) throw paymentError
+    if (paymentError) {
+      console.error("Error inserting payment record:", paymentError)
+      throw paymentError
+    }
+
+    console.log("Payment record created in database")
 
     return new Response(
       JSON.stringify({
@@ -63,6 +71,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error("Error in handle-razorpay:", error)
     return new Response(
       JSON.stringify({ error: error.message }),
       {
