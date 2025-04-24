@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { Container } from "@/components/ui/Container";
@@ -12,8 +11,14 @@ import { Trash2, Minus, Plus, ShoppingBag } from "lucide-react";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import { cn } from "@/lib/utils";
 import { PaymentButton } from "@/components/payment/PaymentButton";
+import { OrderSuccessModal } from "@/components/modals/OrderSuccessModal";
+import { OrderBill } from "@/components/bill/OrderBill";
+import { CartItem } from "@/types/database";
 
 export default function Cart() {
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showBill, setShowBill] = useState(false);
+  const [orderItems, setOrderItems] = useState<CartItem[]>([]);
   const { user } = useAuth();
   const { cartItems, totalItems, totalAmount, removeFromCart, updateQuantity, clearCart, loading } = useCart();
 
@@ -37,12 +42,27 @@ export default function Cart() {
   const handleClearCart = () => {
     clearCart();
   };
-  
-  // Calculate tax
+
+  const handleOrderSuccess = () => {
+    setOrderItems([...cartItems]); // Store current cart items for the bill
+    setShowSuccessModal(true);
+    setShowBill(true);
+    clearCart(); // Clear the cart after successful order
+  };
+
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
+  };
+
+  const handleCloseBill = () => {
+    setShowBill(false);
+    setOrderItems([]); // Clear stored order items
+  };
+
+  // Calculate tax and final total
   const tax = totalAmount * 0.05;
-  // No delivery fee
   const finalTotal = totalAmount + tax;
-  
+
   return (
     <>
       <Header />
@@ -56,7 +76,7 @@ export default function Cart() {
               Review your selected items before checkout
             </p>
           </MotionDiv>
-          
+
           {loading ? (
             <div className="text-center py-8">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
@@ -64,7 +84,7 @@ export default function Cart() {
               </div>
               <h3 className="text-lg mt-2">Loading your cart...</h3>
             </div>
-          ) : cartItems.length === 0 ? (
+          ) : cartItems.length === 0 && !showBill ? (
             <div className="text-center py-16">
               <div className="mb-6">
                 <ShoppingBag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -79,122 +99,131 @@ export default function Cart() {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-              <div className="lg:col-span-2">
-                <div className="bg-white border rounded-lg overflow-hidden">
-                  <div className="p-4 border-b flex justify-between items-center">
-                    <h2 className="text-lg font-medium">Cart Items ({totalItems})</h2>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-sm"
-                      onClick={handleClearCart}
-                    >
-                      Clear Cart
-                    </Button>
-                  </div>
-                  
-                  <div className="divide-y">
-                    {cartItems.map((item) => (
-                      <div key={item.id} className="p-4 flex items-start gap-4">
-                        <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden">
-                          <AnimatedImage
-                            src={item.menu_item?.image || ""}
-                            alt={item.menu_item?.name || ""}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        
-                        <div className="flex-grow">
-                          <h3 className="font-medium">{item.menu_item?.name}</h3>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {item.menu_item?.description?.substring(0, 80)}
-                            {(item.menu_item?.description?.length || 0) > 80 ? "..." : ""}
-                          </p>
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-1">
-                              <button 
-                                onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                                className={cn(
-                                  "p-1 rounded-full border",
-                                  "hover:bg-muted transition-colors"
-                                )}
-                              >
-                                <Minus className="h-3 w-3" />
-                              </button>
-                              <span className="w-8 text-center">{item.quantity}</span>
-                              <button 
-                                onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                                className={cn(
-                                  "p-1 rounded-full border",
-                                  "hover:bg-muted transition-colors"
-                                )}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </button>
+              {!showBill ? (
+                <>
+                  <div className="lg:col-span-2">
+                    <div className="bg-white border rounded-lg overflow-hidden">
+                      <div className="p-4 border-b flex justify-between items-center">
+                        <h2 className="text-lg font-medium">Cart Items ({totalItems})</h2>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-sm"
+                          onClick={handleClearCart}
+                        >
+                          Clear Cart
+                        </Button>
+                      </div>
+                      
+                      <div className="divide-y">
+                        {cartItems.map((item) => (
+                          <div key={item.id} className="p-4 flex items-start gap-4">
+                            <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden">
+                              <AnimatedImage
+                                src={item.menu_item?.image || ""}
+                                alt={item.menu_item?.name || ""}
+                                className="w-full h-full object-cover"
+                              />
                             </div>
                             
-                            <div className="flex items-center gap-3">
-                              <div className="font-medium">
-                                ₹{((item.menu_item?.price || 0) * item.quantity).toFixed(0)}
+                            <div className="flex-grow">
+                              <h3 className="font-medium">{item.menu_item?.name}</h3>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {item.menu_item?.description?.substring(0, 80)}
+                                {(item.menu_item?.description?.length || 0) > 80 ? "..." : ""}
+                              </p>
+                              
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-1">
+                                  <button 
+                                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                    className={cn(
+                                      "p-1 rounded-full border",
+                                      "hover:bg-muted transition-colors"
+                                    )}
+                                  >
+                                    <Minus className="h-3 w-3" />
+                                  </button>
+                                  <span className="w-8 text-center">{item.quantity}</span>
+                                  <button 
+                                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                    className={cn(
+                                      "p-1 rounded-full border",
+                                      "hover:bg-muted transition-colors"
+                                    )}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </button>
+                                </div>
+                                
+                                <div className="flex items-center gap-3">
+                                  <div className="font-medium">
+                                    ₹{((item.menu_item?.price || 0) * item.quantity).toFixed(0)}
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleRemoveItem(item.id)}
+                                    className="text-muted-foreground hover:text-destructive h-8 w-8"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleRemoveItem(item.id)}
-                                className="text-muted-foreground hover:text-destructive h-8 w-8"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
                             </div>
                           </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="lg:col-span-1">
+                    <div className="bg-white border rounded-lg overflow-hidden sticky top-24">
+                      <div className="p-4 border-b">
+                        <h2 className="text-lg font-medium">Order Summary</h2>
+                      </div>
+                      
+                      <div className="p-4">
+                        <div className="space-y-2 mb-4">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Subtotal</span>
+                            <span>₹{totalAmount.toFixed(0)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Tax</span>
+                            <span>₹{tax.toFixed(0)}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="lg:col-span-1">
-                <div className="bg-white border rounded-lg overflow-hidden sticky top-24">
-                  <div className="p-4 border-b">
-                    <h2 className="text-lg font-medium">Order Summary</h2>
-                  </div>
-                  
-                  <div className="p-4">
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span>₹{totalAmount.toFixed(0)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Tax</span>
-                        <span>₹{tax.toFixed(0)}</span>
+                        
+                        <div className="border-t pt-4 mb-6">
+                          <div className="flex justify-between font-medium">
+                            <span>Total</span>
+                            <span>₹{finalTotal.toFixed(0)}</span>
+                          </div>
+                        </div>
+                        
+                        <PaymentButton 
+                          amount={finalTotal} 
+                          className="w-full"
+                          maxRetries={3}
+                          onSuccess={handleOrderSuccess}
+                        >
+                          Proceed to Checkout
+                        </PaymentButton>
                       </div>
                     </div>
-                    
-                    <div className="border-t pt-4 mb-6">
-                      <div className="flex justify-between font-medium">
-                        <span>Total</span>
-                        <span>₹{finalTotal.toFixed(0)}</span>
-                      </div>
-                    </div>
-                    
-                    <PaymentButton 
-                      amount={finalTotal} 
-                      className="w-full"
-                      maxRetries={3}
-                    >
-                      Proceed to Checkout
-                    </PaymentButton>
                   </div>
+                </>
+              ) : (
+                <div className="lg:col-span-3">
+                  <OrderBill items={orderItems} onClose={handleCloseBill} />
                 </div>
-              </div>
+              )}
             </div>
           )}
         </Container>
       </main>
       <Footer />
+      <OrderSuccessModal isOpen={showSuccessModal} onClose={handleCloseModal} />
     </>
   );
 }
