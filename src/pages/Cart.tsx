@@ -10,7 +10,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Trash2, Minus, Plus, ShoppingBag } from "lucide-react";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import { cn } from "@/lib/utils";
-import { PaymentButton } from "@/components/payment/PaymentButton";
 import { OrderSuccessModal } from "@/components/modals/OrderSuccessModal";
 import { OrderBill } from "@/components/bill/OrderBill";
 import { CartItem } from "@/types/database";
@@ -44,10 +43,10 @@ export default function Cart() {
   };
 
   const handleOrderSuccess = () => {
-    setOrderItems([...cartItems]); // Store current cart items for the bill
+    setOrderItems([...cartItems]);
     setShowSuccessModal(true);
     setShowBill(true);
-    clearCart(); // Clear the cart after successful order
+    clearCart();
   };
 
   const handleCloseModal = () => {
@@ -56,7 +55,7 @@ export default function Cart() {
 
   const handleCloseBill = () => {
     setShowBill(false);
-    setOrderItems([]); // Clear stored order items
+    setOrderItems([]);
   };
 
   // Calculate tax and final total
@@ -201,14 +200,12 @@ export default function Cart() {
                           </div>
                         </div>
                         
-                        <PaymentButton 
-                          amount={finalTotal} 
+                        <Button 
                           className="w-full"
-                          maxRetries={3}
-                          onSuccess={handleOrderSuccess}
+                          onClick={handleOrderSuccess}
                         >
-                          Proceed to Checkout
-                        </PaymentButton>
+                          Place Order
+                        </Button>
                       </div>
                     </div>
                   </div>

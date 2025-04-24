@@ -1,18 +1,4 @@
 
-export interface Payment {
-  id: string;
-  user_id: string;
-  razorpay_order_id: string | null;
-  razorpay_payment_id: string | null;
-  amount: number;
-  currency: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
-  payment_type: 'one_time' | 'recurring';
-  metadata: Record<string, any> | null;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface SubscriptionPlan {
   id: string;
   name: string;
