@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { CartItem } from "@/types/database";
@@ -7,15 +6,16 @@ import { X, Printer } from "lucide-react";
 interface OrderBillProps {
   items: CartItem[];
   onClose: () => void;
+  totalAmount?: number;
 }
 
-export function OrderBill({ items, onClose }: OrderBillProps) {
+export function OrderBill({ items, onClose, totalAmount }: OrderBillProps) {
   const subtotal = items.reduce((total, item) => 
     total + (item.menu_item?.price || 0) * item.quantity, 
     0
   );
-  const tax = subtotal * 0.05; // 5% tax
-  const total = subtotal + tax;
+  const tax = subtotal * 0.05;
+  const total = totalAmount || (subtotal + tax);
 
   const handlePrint = () => {
     window.print();

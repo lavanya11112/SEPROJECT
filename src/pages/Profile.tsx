@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { RatingDialog } from "@/components/dialogs/RatingDialog";
 import { EditProfileDialog } from "@/components/dialogs/EditProfileDialog";
 import { EditAddressDialog } from "@/components/dialogs/EditAddressDialog";
+import { OrderBill } from "@/components/bill/OrderBill";
 
 const menuOptions = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -284,7 +285,6 @@ export default function Profile() {
                   <TableHead>Order ID</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -294,7 +294,6 @@ export default function Profile() {
                     <TableCell className="font-medium">{order.id.substring(0, 8).toUpperCase()}</TableCell>
                     <TableCell>{formatDate(order.created_at)}</TableCell>
                     <TableCell>₹{order.total_amount?.toFixed(2)}</TableCell>
-                    <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm" className="h-8" onClick={() => toast.info(`Order details for ${order.id.substring(0, 8).toUpperCase()} coming soon!`)}>
                         View Details
@@ -312,50 +311,62 @@ export default function Profile() {
     </>
   );
 
-  const renderOrders = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Order History</CardTitle>
-        <CardDescription>All your past orders</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="text-center py-6">Loading your orders...</div>
-        ) : orders.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Action</TableHead>
+const renderOrders = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Order History</CardTitle>
+      <CardDescription>All your past orders</CardDescription>
+    </CardHeader>
+    <CardContent>
+      {loading ? (
+        <div className="text-center py-6">Loading your orders...</div>
+      ) : orders.length > 0 ? (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Order ID</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Items</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {orders.map((order) => (
+              <TableRow key={order.id}>
+                <TableCell className="font-medium">{order.id.substring(0, 8).toUpperCase()}</TableCell>
+                <TableCell>{formatDate(order.created_at)}</TableCell>
+                <TableCell>{order.order_items?.length || 0} items</TableCell>
+                <TableCell>₹{order.total_amount?.toFixed(2)}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => {
+                      if (order.order_items) {
+                        setSelectedOrder(order);
+                        setShowOrderDetails(true);
+                      }
+                    }}
+                  >
+                    View Details
+                  </Button>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id.substring(0, 8).toUpperCase()}</TableCell>
-                  <TableCell>{formatDate(order.created_at)}</TableCell>
-                  <TableCell>{order.order_items?.length || 0} items</TableCell>
-                  <TableCell>₹{order.total_amount?.toFixed(2)}</TableCell>
-                  <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm" className="h-8" onClick={() => toast.info(`Order details for ${order.id.substring(0, 8).toUpperCase()} coming soon!`)}>
-                      View Details
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <div className="text-center py-6">You haven't placed any orders yet.</div>
-        )}
-      </CardContent>
-    </Card>
-  );
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <div className="text-center py-6">You haven't placed any orders yet.</div>
+      )}
+    </CardContent>
+  </Card>
+);
+
+// Add new state for order details modal
+const [selectedOrder, setSelectedOrder] = useState(null);
+const [showOrderDetails, setShowOrderDetails] = useState(false);
 
   const renderPromoCodes = () => (
     <Card>
@@ -557,6 +568,20 @@ export default function Profile() {
         open={showRatingDialog} 
         onOpenChange={setShowRatingDialog} 
       />
+    {selectedOrder && showOrderDetails && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-background p-6 rounded-lg max-w-2xl w-full m-4">
+          <OrderBill
+            items={selectedOrder.order_items}
+            onClose={() => {
+              setShowOrderDetails(false);
+              setSelectedOrder(null);
+            }}
+            totalAmount={selectedOrder.total_amount}
+          />
+        </div>
+      </div>
+    )}
       <Footer />
     </>
   );

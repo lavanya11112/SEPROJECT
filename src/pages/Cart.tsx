@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { Container } from "@/components/ui/Container";
@@ -8,7 +7,7 @@ import { MotionDiv } from "@/components/ui/MotionDiv";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Trash2, Minus, Plus, ShoppingBag } from "lucide-react";
+import { Trash2, Minus, Plus, ShoppingBag, Percent } from "lucide-react";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import { cn } from "@/lib/utils";
 import { OrderSuccessModal } from "@/components/modals/OrderSuccessModal";
@@ -16,12 +15,15 @@ import { OrderBill } from "@/components/bill/OrderBill";
 import { CartItem } from "@/types/database";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 export default function Cart() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showBill, setShowBill] = useState(false);
   const [orderItems, setOrderItems] = useState<CartItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
   const { user } = useAuth();
   const { cartItems, totalItems, totalAmount, removeFromCart, updateQuantity, clearCart, loading } = useCart();
 
@@ -46,6 +48,22 @@ export default function Cart() {
     clearCart();
   };
 
+  const handleApplyPromoCode = () => {
+    // Simple promo code logic - you can expand this
+    const code = promoCode.toUpperCase();
+    if (code === "WELCOME10") {
+      const discount = totalAmount * 0.1; // 10% discount
+      setAppliedDiscount(discount);
+      toast.success("Promo code applied successfully!");
+    } else if (code === "SPICY25") {
+      const discount = totalAmount * 0.25; // 25% discount
+      setAppliedDiscount(discount);
+      toast.success("Promo code applied successfully!");
+    } else {
+      toast.error("Invalid promo code");
+    }
+  };
+
   const handleOrderSuccess = async () => {
     if (cartItems.length === 0) {
       toast.error("Your cart is empty.");
@@ -55,11 +73,9 @@ export default function Cart() {
     setIsProcessing(true);
     
     try {
-      // Calculate total amount and tax
       const tax = totalAmount * 0.05;
-      const finalTotal = totalAmount + tax;
+      const finalTotal = totalAmount + tax - appliedDiscount;
       
-      // 1. Create order in the database
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -72,13 +88,10 @@ export default function Cart() {
         .select()
         .single();
       
-      if (orderError) {
-        throw orderError;
-      }
+      if (orderError) throw orderError;
       
       const orderId = orderData.id;
       
-      // 2. Create order items
       const orderItemsToInsert = cartItems.map(item => ({
         order_id: orderId,
         menu_item_id: item.menu_item_id,
@@ -90,22 +103,14 @@ export default function Cart() {
         .from('order_items')
         .insert(orderItemsToInsert);
       
-      if (itemsError) {
-        throw itemsError;
-      }
+      if (itemsError) throw itemsError;
       
-      // Save order items for the bill
       setOrderItems([...cartItems]);
-      
-      // Show success modal and bill
       setShowSuccessModal(true);
       setShowBill(true);
-      
-      // Clear the cart
       await clearCart();
       
       toast.success("Order placed successfully!");
-      
     } catch (error) {
       console.error("Error placing order:", error);
       toast.error("Failed to place order. Please try again.");
@@ -247,11 +252,36 @@ export default function Cart() {
                       </div>
                       
                       <div className="p-4">
+                        <div className="mb-4">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Enter promo code"
+                              value={promoCode}
+                              onChange={(e) => setPromoCode(e.target.value)}
+                              className="flex-1"
+                            />
+                            <Button
+                              variant="outline"
+                              onClick={handleApplyPromoCode}
+                              className="shrink-0"
+                            >
+                              <Percent className="mr-2 h-4 w-4" />
+                              Apply
+                            </Button>
+                          </div>
+                        </div>
+
                         <div className="space-y-2 mb-4">
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Subtotal</span>
                             <span>₹{totalAmount.toFixed(0)}</span>
                           </div>
+                          {appliedDiscount > 0 && (
+                            <div className="flex justify-between text-sm text-green-600">
+                              <span>Discount</span>
+                              <span>-₹{appliedDiscount.toFixed(0)}</span>
+                            </div>
+                          )}
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Tax</span>
                             <span>₹{tax.toFixed(0)}</span>
@@ -261,7 +291,7 @@ export default function Cart() {
                         <div className="border-t pt-4 mb-6">
                           <div className="flex justify-between font-medium">
                             <span>Total</span>
-                            <span>₹{finalTotal.toFixed(0)}</span>
+                            <span>₹{(finalTotal - appliedDiscount).toFixed(0)}</span>
                           </div>
                         </div>
                         
