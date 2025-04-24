@@ -140,9 +140,7 @@ export function Header() {
                   <DropdownMenuItem asChild>
                     <Link to="/profile" className="w-full cursor-pointer">Profile</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/orders" className="w-full cursor-pointer">Orders</Link>
-                  </DropdownMenuItem>
+                
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-500 cursor-pointer">
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
